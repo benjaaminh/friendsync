@@ -35,7 +35,7 @@ export function Sidebar() {
       <div className="flex h-14 items-center px-4 font-semibold text-lg">
         <Link href="/dashboard" className="flex items-center gap-2">
           <span className="text-primary">FC</span>
-          <span>FriendCal</span>
+          <span>FriendSync</span>
         </Link>
       </div>
       <Separator />
@@ -126,7 +126,7 @@ export function MobileHeader() {
   return (
     <header className="md:hidden flex h-14 items-center justify-between border-b px-4 bg-card">
       <Link href="/dashboard" className="font-semibold text-lg">
-        <span className="text-primary">FC</span> FriendCal
+        <span className="text-primary">FC</span> FriendSync
       </Link>
       <div className="flex items-center gap-2">
         <Link href="/settings">

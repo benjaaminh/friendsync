@@ -18,9 +18,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "FriendCal - Find Time Together",
+  title: "FriendSync",
   description:
-    "Sync calendars with your friends to find common free time and plan activities together.",
+    "Plan events together with your friends",
 };
 
 export default function RootLayout({

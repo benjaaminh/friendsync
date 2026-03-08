@@ -35,5 +35,5 @@ A group planning webapp for small friend groups. Manage a shared calendar and to
 ### Note to self: run migrations on production upon deployment and redeploy
 
 ```bash
-DATABASE_URL="neon_direct_url" npx prisma migrate deploy
+DATABASE_URL="database_url" npx prisma migrate deploy
 ```
