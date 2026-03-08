@@ -1,0 +1,325 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { toast } from "sonner";
+import useSWR from "swr";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { UserAvatar } from "@/components/auth/user-avatar";
+
+const fetcher = (url: string) => fetch(url).then((r) => r.json());
+
+interface Member {
+  id: string;
+  role: string;
+  userId: string;
+  user: { id: string; name: string | null; email: string | null; image: string | null };
+}
+
+interface GroupData {
+  id: string;
+  name: string;
+  description: string | null;
+  currentUserRole: string;
+  members: Member[];
+}
+
+interface InviteData {
+  id: string;
+  code: string;
+  url?: string;
+  uses: number;
+  maxUses: number | null;
+  active: boolean;
+}
+
+export default function GroupSettingsPage() {
+  const params = useParams();
+  const router = useRouter();
+  const { data: session } = useSession();
+  const groupId = params.groupId as string;
+
+  const { data: group, mutate: mutateGroup } = useSWR<GroupData>(
+    `/api/groups/${groupId}`,
+    fetcher
+  );
+  const { data: invites, mutate: mutateInvites } = useSWR<InviteData[]>(
+    group?.currentUserRole === "ADMIN" ? `/api/groups/${groupId}/invite` : null,
+    fetcher
+  );
+
+  const [name, setName] = useState("");
+  const [showDeleteGroup, setShowDeleteGroup] = useState(false);
+  const [showLeave, setShowLeave] = useState(false);
+  const [showRemoveMember, setShowRemoveMember] = useState<Member | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const isAdmin = group?.currentUserRole === "ADMIN";
+
+  useEffect(() => {
+    if (group) setName(group.name);
+  }, [group]);
+
+  async function handleUpdateGroup(e: React.FormEvent) {
+    e.preventDefault();
+    try {
+      const res = await fetch(`/api/groups/${groupId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+      if (!res.ok) throw new Error();
+      toast.success("Group updated");
+      mutateGroup();
+    } catch {
+      toast.error("Failed to update group");
+    }
+  }
+
+  async function handleCreateInvite() {
+    try {
+      const res = await fetch(`/api/groups/${groupId}/invite`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      await navigator.clipboard.writeText(data.url);
+      toast.success("Invite link copied to clipboard!");
+      mutateInvites();
+    } catch {
+      toast.error("Failed to create invite");
+    }
+  }
+
+  async function handleRemoveMember(userId: string) {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/groups/${groupId}/members`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
+      });
+      if (!res.ok) throw new Error();
+      toast.success("Member removed");
+      mutateGroup();
+      setShowRemoveMember(null);
+    } catch {
+      toast.error("Failed to remove member");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleLeaveGroup() {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/groups/${groupId}/members`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: session?.user?.id }),
+      });
+      if (!res.ok) throw new Error();
+      toast.success("Left group");
+      router.push("/dashboard");
+    } catch {
+      toast.error("Failed to leave group");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleDeleteGroup() {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/groups/${groupId}`, { method: "DELETE" });
+      if (!res.ok) throw new Error();
+      toast.success("Group deleted");
+      router.push("/dashboard");
+    } catch {
+      toast.error("Failed to delete group");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  if (!group) return <div className="py-8 text-center text-muted-foreground">Loading...</div>;
+
+  return (
+    <div className="space-y-6 max-w-2xl">
+      {/* Group name */}
+      {isAdmin && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Group Settings</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleUpdateGroup} className="flex gap-2">
+              <div className="flex-1">
+                <Label htmlFor="groupName" className="sr-only">Group Name</Label>
+                <Input id="groupName" value={name} onChange={(e) => setName(e.target.value)} />
+              </div>
+              <Button type="submit" size="sm">Save</Button>
+            </form>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Members */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-base">Members ({group.members.length})</CardTitle>
+          {isAdmin && (
+            <Button size="sm" variant="outline" onClick={handleCreateInvite}>
+              Create Invite Link
+            </Button>
+          )}
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {group.members.map((member) => (
+            <div key={member.id} className="flex items-center gap-3">
+              <UserAvatar name={member.user.name} image={member.user.image} />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{member.user.name}</p>
+                <p className="text-xs text-muted-foreground truncate">{member.user.email}</p>
+              </div>
+              <Badge variant={member.role === "ADMIN" ? "default" : "secondary"}>
+                {member.role.toLowerCase()}
+              </Badge>
+              {isAdmin && member.user.id !== session?.user?.id && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="text-destructive"
+                  onClick={() => setShowRemoveMember(member)}
+                >
+                  Remove
+                </Button>
+              )}
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      {/* Invite links */}
+      {isAdmin && invites && invites.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Active Invite Links</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {invites.map((invite) => (
+              <div key={invite.id} className="flex items-center gap-2 text-sm">
+                <code className="flex-1 truncate text-xs bg-muted px-2 py-1 rounded">
+                  {`${typeof window !== "undefined" ? window.location.origin : ""}/invite/${invite.code}`}
+                </code>
+                <span className="text-xs text-muted-foreground">
+                  {invite.uses} use{invite.uses !== 1 ? "s" : ""}
+                </span>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => {
+                    navigator.clipboard.writeText(
+                      `${window.location.origin}/invite/${invite.code}`
+                    );
+                    toast.success("Copied!");
+                  }}
+                >
+                  Copy
+                </Button>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      <Separator />
+
+      {/* Danger zone */}
+      <div className="flex gap-2">
+        {!isAdmin && (
+          <Button variant="outline" className="text-destructive" onClick={() => setShowLeave(true)}>
+            Leave Group
+          </Button>
+        )}
+        {isAdmin && (
+          <Button variant="destructive" onClick={() => setShowDeleteGroup(true)}>
+            Delete Group
+          </Button>
+        )}
+      </div>
+
+      {/* Leave dialog */}
+      <Dialog open={showLeave} onOpenChange={setShowLeave}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Leave Group</DialogTitle>
+            <DialogDescription>Are you sure you want to leave {group.name}?</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowLeave(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={handleLeaveGroup} disabled={loading}>
+              {loading ? "Leaving..." : "Leave"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete group dialog */}
+      <Dialog open={showDeleteGroup} onOpenChange={setShowDeleteGroup}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Group</DialogTitle>
+            <DialogDescription>
+              This will permanently delete {group.name} and all its data. This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeleteGroup(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={handleDeleteGroup} disabled={loading}>
+              {loading ? "Deleting..." : "Delete Group"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Remove member dialog */}
+      <Dialog open={!!showRemoveMember} onOpenChange={() => setShowRemoveMember(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Remove Member</DialogTitle>
+            <DialogDescription>
+              Remove {showRemoveMember?.user.name} from the group?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowRemoveMember(null)}>Cancel</Button>
+            <Button
+              variant="destructive"
+              onClick={() => showRemoveMember && handleRemoveMember(showRemoveMember.user.id)}
+              disabled={loading}
+            >
+              {loading ? "Removing..." : "Remove"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
