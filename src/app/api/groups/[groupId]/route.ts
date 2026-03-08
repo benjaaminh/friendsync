@@ -1,13 +1,24 @@
+/**
+ * API route handlers for fetching and updating a single group's metadata.
+ */
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+/**
+ * Checks whether a user is a member of a group.
+ * @param groupId Group identifier.
+ * @param userId User identifier.
+ */
 async function checkMembership(groupId: string, userId: string) {
   return prisma.groupMember.findUnique({
     where: { userId_groupId: { userId, groupId } },
   });
 }
 
+/**
+ * Returns a group's metadata, members, and caller role when the caller is a member.
+ */
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ groupId: string }> }
@@ -23,7 +34,7 @@ export async function GET(
     where: { id: groupId },
     include: {
       members: {
-        include: { user: { select: { id: true, name: true, email: true, image: true } } },
+        include: { user: { select: { id: true, username: true, name: true, image: true } } },
       },
       _count: { select: { members: true, todos: true } },
     },
@@ -34,6 +45,10 @@ export async function GET(
   return NextResponse.json({ ...group, currentUserRole: membership.role });
 }
 
+/**
+ * Updates group name/description. Only admins are allowed to modify group metadata.
+ * @param request Incoming request with optional `name` and `description` fields.
+ */
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ groupId: string }> }
@@ -61,6 +76,9 @@ export async function PATCH(
   return NextResponse.json(group);
 }
 
+/**
+ * Deletes a group. Only admins can perform this operation.
+ */
 export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ groupId: string }> }

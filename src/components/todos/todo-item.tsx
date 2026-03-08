@@ -1,3 +1,6 @@
+/**
+ * Feature component responsible for todo item rendering and interactions.
+ */
 "use client";
 
 import { useState } from "react";
@@ -143,7 +146,6 @@ export function TodoItem({ todo, groupId, currentUserId, onUpdate }: TodoItemPro
         </DialogContent>
       </Dialog>
 
-      {/* Schedule dialog */}
       <ScheduleDialog
         isOpen={showSchedule}
         onClose={() => setShowSchedule(false)}

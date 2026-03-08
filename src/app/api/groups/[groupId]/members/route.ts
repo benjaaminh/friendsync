@@ -1,7 +1,13 @@
+/**
+ * API route handlers for listing and updating membership within a group. route: /groups/:groupId/members
+ */
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+/**
+ * Lists all members of a group for authenticated members.
+ */
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ groupId: string }> }
@@ -17,13 +23,18 @@ export async function GET(
 
   const members = await prisma.groupMember.findMany({
     where: { groupId },
-    include: { user: { select: { id: true, name: true, email: true, image: true } } },
+    include: { user: { select: { id: true, username: true, name: true, image: true } } },
     orderBy: { joinedAt: "asc" },
   });
 
   return NextResponse.json(members);
 }
 
+/**
+ * Removes a member from the group.
+ * Members can remove themselves; admins can remove any member.
+ * @param request Incoming request with `userId` of the member to remove.
+ */
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ groupId: string }> }

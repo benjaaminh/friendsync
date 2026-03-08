@@ -1,3 +1,6 @@
+/**
+ * Next.js page component for the /(app)/settings route segment.
+ */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -90,10 +93,6 @@ export default function UserSettingsPage() {
           <div className="text-sm">
             <span className="text-muted-foreground">Name:</span>{" "}
             {session?.user?.name}
-          </div>
-          <div className="text-sm">
-            <span className="text-muted-foreground">Email:</span>{" "}
-            {session?.user?.email}
           </div>
         </CardContent>
       </Card>

@@ -1,3 +1,6 @@
+/**
+ * Feature component responsible for week view rendering and interactions.
+ */
 "use client";
 
 import { useMemo } from "react";
@@ -10,27 +13,22 @@ const TOTAL_HOURS = DAY_END_HOUR - DAY_START_HOUR;
 const SLOT_HEIGHT = 48; // px per 30 min
 const ROW_HEIGHT = SLOT_HEIGHT * 2; // px per hour
 
-interface SlotData {
+interface ScheduledEventData {
+  id: string;
+  title: string;
   start: string;
   end: string;
-  durationMinutes?: number;
-}
-
-interface BusySlotData {
-  start: string;
-  end: string;
-  userId?: string;
+  duration: number;
+  creatorName?: string | null;
 }
 
 interface WeekViewProps {
-  freeSlots: SlotData[];
-  busySlots?: BusySlotData[];
+  events?: ScheduledEventData[];
   weekStart: Date;
-  onSlotClick?: (start: string, end: string) => void;
-  selectedSlot?: { start: string; end: string } | null;
-  minDuration?: number;
+  onEmptySlotClick?: (start: Date) => void;
 }
 
+ // calculates how big of a window to render for an event, with top and height of the "card"
 function getSlotPosition(
   slotStart: Date,
   slotEnd: Date,
@@ -61,11 +59,9 @@ function getSlotPosition(
 }
 
 export function WeekView({
-  freeSlots,
-  busySlots = [],
+  events = [],
   weekStart,
-  onSlotClick,
-  selectedSlot,
+  onEmptySlotClick,
 }: WeekViewProps) {
   const days = useMemo(
     () => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)),
@@ -129,7 +125,7 @@ export function WeekView({
                 className="absolute w-full text-right pr-2 text-xs text-muted-foreground"
                 style={{ top: (hour - DAY_START_HOUR) * ROW_HEIGHT - 6 }}
               >
-                {format(new Date().setHours(hour, 0), "h a")}
+                {format(new Date().setHours(hour, 0), "HH:mm")}
               </div>
             ))}
           </div>
@@ -138,8 +134,21 @@ export function WeekView({
           {days.map((day, dayIndex) => (
             <div
               key={dayIndex}
-              className="relative border-l"
+              className={cn("relative border-l", onEmptySlotClick && "cursor-pointer")}
               style={{ height: totalHeight }}
+              onClick={(e) => {
+                if (!onEmptySlotClick) return;
+                // Don't fire if user clicked on an event
+                if ((e.target as HTMLElement).closest("[data-event]")) return;
+                const rect = e.currentTarget.getBoundingClientRect();
+                const yOffset = e.clientY - rect.top;
+                const rawMinutes = (yOffset / ROW_HEIGHT) * 60;
+                const roundedMinutes = Math.floor(rawMinutes / 30) * 30;
+                const clickedTime = new Date(day);
+                clickedTime.setHours(DAY_START_HOUR, 0, 0, 0);
+                clickedTime.setMinutes(clickedTime.getMinutes() + roundedMinutes);
+                onEmptySlotClick(clickedTime);
+              }}
             >
               {/* Hour grid lines */}
               {hours.map((hour) => (
@@ -161,58 +170,33 @@ export function WeekView({
                 />
               ))}
 
-              {/* Busy slots */}
-              {busySlots.map((slot, i) => {
-                const slotStart = parseISO(slot.start);
-                const slotEnd = parseISO(slot.end);
-                if (!isSameDay(slotStart, day) && !isSameDay(slotEnd, day))
+              {/* Scheduled group events */}
+              {events.map((event) => {
+                const eventStart = parseISO(event.start);
+                const eventEnd = parseISO(event.end);
+                if (!isSameDay(eventStart, day) && !isSameDay(eventEnd, day))
                   return null;
-                const pos = getSlotPosition(slotStart, slotEnd, day);
+                const pos = getSlotPosition(eventStart, eventEnd, day);
                 if (!pos) return null;
 
                 return (
                   <div
-                    key={`busy-${i}`}
-                    className="absolute left-0.5 right-0.5 rounded-sm bg-red-200/50 dark:bg-red-900/30 border border-red-300/50 dark:border-red-700/50"
+                    key={`event-${event.id}`}
+                    data-event
+                    className="absolute left-0.5 right-0.5 rounded-sm bg-blue-500 dark:bg-blue-600 border border-blue-600 dark:border-blue-500 z-[5] overflow-hidden shadow-sm"
                     style={{ top: pos.top, height: pos.height }}
-                  />
-                );
-              })}
-
-              {/* Free slots */}
-              {freeSlots.map((slot, i) => {
-                const slotStart = parseISO(slot.start);
-                const slotEnd = parseISO(slot.end);
-                if (!isSameDay(slotStart, day) && !isSameDay(slotEnd, day))
-                  return null;
-                const pos = getSlotPosition(slotStart, slotEnd, day);
-                if (!pos) return null;
-
-                const isSelected =
-                  selectedSlot?.start === slot.start &&
-                  selectedSlot?.end === slot.end;
-
-                return (
-                  <div
-                    key={`free-${i}`}
-                    className={cn(
-                      "absolute left-0.5 right-0.5 rounded-sm border transition-colors",
-                      "bg-green-100 dark:bg-green-900/40 border-green-400 dark:border-green-700",
-                      onSlotClick &&
-                        "cursor-pointer hover:bg-green-200 dark:hover:bg-green-800/50",
-                      isSelected && "ring-2 ring-primary ring-offset-1"
-                    )}
-                    style={{ top: pos.top, height: pos.height }}
-                    onClick={() =>
-                      onSlotClick && onSlotClick(slot.start, slot.end)
-                    }
+                    title={`${event.title}\n${format(eventStart, "HH:mm")} - ${format(eventEnd, "HH:mm")}${event.creatorName ? `\nAdded by ${event.creatorName}` : ""}`}
                   >
-                    {pos.height > 20 && (
-                      <span className="text-[10px] px-1 text-green-800 dark:text-green-200 truncate block">
-                        {format(slotStart, "h:mm")} -{" "}
-                        {format(slotEnd, "h:mm a")}
+                    <div className="px-1.5 py-0.5 h-full flex flex-col">
+                      <span className="text-[11px] font-medium text-white truncate">
+                        {event.title}
                       </span>
-                    )}
+                      {pos.height > 30 && (
+                        <span className="text-[10px] text-blue-100 truncate">
+                          {format(eventStart, "HH:mm")} - {format(eventEnd, "HH:mm")}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 );
               })}

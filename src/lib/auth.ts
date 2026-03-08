@@ -1,63 +1,83 @@
+/**
+ * Shared library utilities for auth used across server and client code.
+ */
 import NextAuth from "next-auth";
-import Google from "next-auth/providers/google";
+import Credentials from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "./prisma";
-import { refreshAccessToken } from "./token-refresh";
+import bcrypt from "bcryptjs";
 
 declare module "next-auth" {
   interface Session {
     user: {
       id: string;
       name?: string | null;
-      email?: string | null;
       image?: string | null;
     };
-    error?: string;
+  }
+}
+
+declare module "next-auth" {
+  interface JWT {
+    id?: string;
   }
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
   providers: [
-    Google({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      authorization: {
-        params: {
-          scope: [
-            "openid",
-            "https://www.googleapis.com/auth/userinfo.email",
-            "https://www.googleapis.com/auth/userinfo.profile",
-            "https://www.googleapis.com/auth/calendar.events",
-            "https://www.googleapis.com/auth/calendar.freebusy",
-          ].join(" "),
-          access_type: "offline",
-          prompt: "consent",
-        },
+    Credentials({
+      name: "credentials",
+      credentials: {
+        username: { label: "Username", type: "text" },
+        password: { label: "Password", type: "password" },
+      },
+      /**
+       * Validates username/password credentials and maps a Prisma user record to a session user.
+       */
+      async authorize(credentials) {
+        const username = credentials?.username as string | undefined;
+        const password = credentials?.password as string | undefined;
+
+        if (!username || !password) return null;
+
+        const user = await prisma.user.findUnique({
+          where: { username },
+        });
+
+        if (!user || !user.passwordHash) return null;
+
+        const isValid = await bcrypt.compare(password, user.passwordHash);
+        if (!isValid) return null;
+
+        return {
+          id: user.id,
+          name: user.name,
+          image: user.image,
+        };
       },
     }),
   ],
   session: {
-    strategy: "database",
+    strategy: "jwt",
   },
   callbacks: {
-    async session({ session, user }) {
-      session.user.id = user.id;
-
-      const account = await prisma.account.findFirst({
-        where: { userId: user.id, provider: "google" },
-      });
-
-      if (account?.expires_at) {
-        const isExpired = Date.now() >= account.expires_at * 1000;
-        if (isExpired && account.refresh_token) {
-          const refreshed = await refreshAccessToken(account);
-          if (refreshed.error) {
-            session.error = "RefreshAccessTokenError";
-          }
-        }
+    /**
+     * Persists the authenticated user id into the JWT token.
+     */
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
       }
-
+      return token;
+    },
+    /**
+     * Copies the user id from JWT into the session payload sent to the client.
+     */
+    async session({ session, token }) {
+      if (token.id) {
+        session.user.id = token.id as string;
+      }
       return session;
     },
   },

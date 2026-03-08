@@ -1,3 +1,6 @@
+/**
+ * Reusable UI component for dropdown menu.
+ */
 "use client"
 
 import * as React from "react"

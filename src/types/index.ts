@@ -1,3 +1,6 @@
+/**
+ * Central TypeScript type exports used across application modules.
+ */
 import { GroupMemberRole, TodoStatus } from "@/generated/prisma/enums";
 
 export type { GroupMemberRole, TodoStatus };
@@ -8,13 +11,13 @@ export interface GroupWithMembers {
   description: string | null;
   createdById: string;
   createdAt: Date;
-  members: {
+  members: { //members of group
     id: string;
     role: GroupMemberRole;
     user: {
       id: string;
+      username: string;
       name: string | null;
-      email: string | null;
       image: string | null;
     };
   }[];
@@ -40,7 +43,7 @@ export interface TodoWithCreator {
   calendarEventId: string | null;
   createdById: string;
   createdAt: Date;
-  creator: {
+  creator: { //creator of todo
     id: string;
     name: string | null;
     image: string | null;

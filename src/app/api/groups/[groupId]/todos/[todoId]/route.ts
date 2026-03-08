@@ -1,7 +1,14 @@
+/**
+ * API route handlers for updating or deleting a specific todo in a group.
+ */
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+/**
+ * Updates mutable fields for a specific todo in a group.
+ * @param request Incoming request with optional `title`, `description`, `duration`, and `status`.
+ */
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ groupId: string; todoId: string }> }
@@ -34,6 +41,9 @@ export async function PATCH(
   return NextResponse.json(todo);
 }
 
+/**
+ * Deletes a specific todo from a group.
+ */
 export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ groupId: string; todoId: string }> }

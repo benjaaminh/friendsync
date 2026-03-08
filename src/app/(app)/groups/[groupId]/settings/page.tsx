@@ -1,3 +1,6 @@
+/**
+ * Next.js page component for managing group settings, members, and invite links.
+ */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -20,14 +23,18 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { UserAvatar } from "@/components/auth/user-avatar";
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
+import { fetcher } from "@/lib/fetcher";
 
 interface Member {
   id: string;
   role: string;
   userId: string;
-  user: { id: string; name: string | null; email: string | null; image: string | null };
+  user: {
+    id: string;
+    username: string;
+    name: string | null;
+    image: string | null;
+  };
 }
 
 interface GroupData {
@@ -196,7 +203,7 @@ export default function GroupSettingsPage() {
               <UserAvatar name={member.user.name} image={member.user.image} />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{member.user.name}</p>
-                <p className="text-xs text-muted-foreground truncate">{member.user.email}</p>
+                <p className="text-xs text-muted-foreground truncate">@{member.user.username}</p>
               </div>
               <Badge variant={member.role === "ADMIN" ? "default" : "secondary"}>
                 {member.role.toLowerCase()}

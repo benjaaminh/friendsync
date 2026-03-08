@@ -1,19 +1,30 @@
+/**
+ * API route handlers for /api/user requests and responses.
+ */
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+/**
+ * Returns profile information for the authenticated user.
+ */
 export async function GET() {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { id: true, name: true, email: true, image: true, timezone: true },
+    select: { id: true, username: true, name: true, image: true, timezone: true },
   });
 
   return NextResponse.json(user);
 }
 
+/**
+ * Updates mutable profile settings for the authenticated user.
+ * Currently supports `timezone`.
+ * @param request Incoming request containing profile update fields.
+ */
 export async function PATCH(request: Request) {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -33,7 +44,7 @@ export async function PATCH(request: Request) {
   const user = await prisma.user.update({
     where: { id: session.user.id },
     data: { ...(timezone && { timezone }) },
-    select: { id: true, name: true, email: true, image: true, timezone: true },
+    select: { id: true, name: true, image: true, timezone: true },
   });
 
   return NextResponse.json(user);

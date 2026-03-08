@@ -1,8 +1,15 @@
+/**
+ * API route handler for assigning a specific time slot to a group todo. route: /groups/:groupId/todos/:todoId/schedule
+ */
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { syncUserBusySlots, createCalendarEvent } from "@/lib/google-calendar";
 
+/**
+ * Schedules a pending todo into a concrete start/end slot.
+ * Rejects overlaps with already scheduled todos in the same group.
+ * @param request Incoming request containing `start` and `end` timestamps.
+ */
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ groupId: string; todoId: string }> }
@@ -29,70 +36,48 @@ export async function POST(
     return NextResponse.json({ error: "start and end are required" }, { status: 400 });
   }
 
-  // Get all members
-  const members = await prisma.groupMember.findMany({
-    where: { groupId },
-    include: { user: { select: { id: true, email: true, name: true } } },
-  });
+  const startAt = new Date(start);
+  const endAt = new Date(end);
 
-  // Re-sync busy slots to ensure freshness
-  const syncErrors: string[] = [];
-  await Promise.allSettled(
-    members.map(async (member) => {
-      try {
-        await syncUserBusySlots(member.userId, start, end);
-      } catch (err) {
-        syncErrors.push(
-          `Sync failed for ${member.user.name}: ${err instanceof Error ? err.message : "Unknown"}`
-        );
-      }
-    })
-  );
+  if (isNaN(startAt.getTime()) || isNaN(endAt.getTime()) || endAt <= startAt) {
+    return NextResponse.json({ error: "Invalid start/end range" }, { status: 400 });
+  }
 
-  // Verify slot is still free
-  const conflicting = await prisma.busySlot.findFirst({
+  // Verify slot doesn't overlap with already scheduled todos in this group
+  const scheduledTodos = await prisma.todo.findMany({
     where: {
-      userId: { in: members.map((m) => m.userId) },
-      start: { lt: new Date(end) },
-      end: { gt: new Date(start) },
+      groupId,
+      status: "SCHEDULED",
+      scheduledAt: {
+        lt: endAt,
+      },
     },
+    select: { duration: true, scheduledAt: true },
   });
 
-  if (conflicting) {
+  const hasOverlap = scheduledTodos.some((scheduledTodo) => {
+    if (!scheduledTodo.scheduledAt) return false;
+
+    const scheduledStart = scheduledTodo.scheduledAt.getTime();
+    const scheduledEnd = scheduledStart + scheduledTodo.duration * 60 * 1000;
+
+    return scheduledEnd > startAt.getTime();
+  });
+
+  if (hasOverlap) {
     return NextResponse.json(
-      { error: "Time slot is no longer available for all members" },
+      { error: "Time slot overlaps an existing scheduled event" },
       { status: 409 }
     );
   }
 
-  // Create calendar event on organizer's calendar with all attendees
-  const attendeeEmails = members
-    .map((m) => m.user.email)
-    .filter((e): e is string => e !== null);
-
-  let calendarEventId: string | undefined;
-  try {
-    calendarEventId = await createCalendarEvent(session.user.id, {
-      summary: todo.title,
-      description: todo.description || undefined,
-      start,
-      end,
-      attendeeEmails,
-    });
-  } catch (err) {
-    return NextResponse.json(
-      { error: `Failed to create calendar event: ${err instanceof Error ? err.message : "Unknown"}` },
-      { status: 500 }
-    );
-  }
-
-  // Update todo status
+  // Update todo status in-app only
   const updatedTodo = await prisma.todo.update({
     where: { id: todoId },
     data: {
       status: "SCHEDULED",
-      scheduledAt: new Date(start),
-      calendarEventId,
+      scheduledAt: startAt,
+      calendarEventId: null,
     },
     include: {
       creator: { select: { id: true, name: true, image: true } },
@@ -101,7 +86,6 @@ export async function POST(
 
   return NextResponse.json({
     todo: updatedTodo,
-    calendarEventId,
-    syncErrors,
+    calendarEventId: null,
   });
 }

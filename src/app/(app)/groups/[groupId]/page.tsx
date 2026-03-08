@@ -1,3 +1,6 @@
+/**
+ * Next.js route entry for a group that redirects to its default subpage.
+ */
 import { redirect } from "next/navigation";
 
 export default async function GroupPage({

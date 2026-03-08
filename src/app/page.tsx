@@ -1,3 +1,6 @@
+/**
+ * Home page
+ */
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -22,8 +25,8 @@ export default async function Home() {
           </p>
         </div>
         <p className="text-muted-foreground">
-          Sync your Google Calendar with friends, find common free slots, and
-          plan activities together. No more endless &quot;when are you free?&quot; messages.
+          Plan activities with friends in one shared calendar and todo flow.
+          No more endless &quot;when are you free?&quot; messages.
         </p>
         <div className="flex flex-col gap-3">
           <Link href="/signin">
@@ -35,7 +38,7 @@ export default async function Home() {
         <div className="grid grid-cols-3 gap-4 pt-8 text-center">
           <div>
             <p className="text-2xl font-bold">1</p>
-            <p className="text-xs text-muted-foreground">Sign in with Google</p>
+            <p className="text-xs text-muted-foreground">Sign in</p>
           </div>
           <div>
             <p className="text-2xl font-bold">2</p>

@@ -1,3 +1,6 @@
+/**
+ * Next.js layout component that wraps the /(app) route segment.
+ */
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { Sidebar, MobileHeader } from "@/components/layout/sidebar";
@@ -11,10 +14,6 @@ export default async function AppLayout({
 
   if (!session?.user) {
     redirect("/signin");
-  }
-
-  if (session.error === "RefreshAccessTokenError") {
-    redirect("/signin?error=token_expired");
   }
 
   return (

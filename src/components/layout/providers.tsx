@@ -1,3 +1,6 @@
+/**
+ * Feature component responsible for providers rendering and interactions.
+ */
 "use client";
 
 import { SessionProvider } from "next-auth/react";

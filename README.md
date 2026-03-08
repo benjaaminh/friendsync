@@ -1,36 +1,39 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FriendSync
 
-## Getting Started
+A group planning webapp for small friend groups. Manage a shared calendar and todo list to schedule events together.
 
-First, run the development server:
+**Features:**
+- Username/password authentication (no third-party accounts needed)
+- Week view showing planned group events
+- Shared todo list with scheduling in your group calendar
+- Invite friends via shareable link
+
+## How to Use
+
+### First time setup
+1. Register with a username and password
+2. Go to **Settings** and set your timezone
+3. Create a group or accept an invite
+
+### Inviting friends
+1. Open your group → **Settings** tab
+2. Click **Create Invite Link**
+3. Share the link with your friends
+4. They sign in, open the link, and join the group
+
+### Calendar
+- Open a group → **Calendar** tab
+- Blue blocks = events your group has scheduled
+- Green blocks = available time slots with no planned events
+
+### Scheduling a todo
+1. Go to the **Todos** tab and create a todo (title, duration, description)
+2. Click the calendar icon on the todo → a dialog opens showing free slots that fit the duration
+3. Click a green slot to select it, then confirm
+4. The event appears on the group calendar
+
+### Note to self: run migrations on production upon deployment and redeploy
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+DATABASE_URL="neon_direct_url" npx prisma migrate deploy
 ```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

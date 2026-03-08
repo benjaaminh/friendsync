@@ -1,3 +1,4 @@
+/* Prisma data model and database schema definitions for the project. */
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -15,11 +16,11 @@ datasource db {
 
 model User {
   id            String    @id @default(cuid())
+  username      String    @unique
   name          String?
-  email         String?   @unique
-  emailVerified DateTime?
   image         String?
   timezone      String    @default("UTC")
+  passwordHash  String?
 
   accounts     Account[]
   sessions     Session[]
@@ -100,17 +101,6 @@ model GroupMember {
 enum GroupMemberRole {
   ADMIN
   MEMBER
-}
-
-model BusySlot {
-  id        String   @id @default(cuid())
-  userId    String
-  start     DateTime
-  end       DateTime
-  fetchedAt DateTime @default(now())
-
-  @@index([userId, start, end])
-  @@index([userId, fetchedAt])
 }
 
 model Todo {

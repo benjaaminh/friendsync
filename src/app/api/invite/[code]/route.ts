@@ -1,7 +1,13 @@
+/**
+ * API route handlers for joining or inspecting invites by invite code.
+ */
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+/**
+ * Returns invite metadata so users can preview the group before joining.
+ */
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ code: string }> }
@@ -41,6 +47,9 @@ export async function GET(
   });
 }
 
+/**
+ * Joins the authenticated user to the group represented by an invite code.
+ */
 export async function POST(
   _request: NextRequest,
   { params }: { params: Promise<{ code: string }> }

@@ -1,12 +1,15 @@
+/**
+ * Custom React hook for use todos state, fetching, and derived data.
+ */
 import useSWR from "swr";
 import type { TodoWithCreator } from "@/types";
+import { fetcher } from "@/lib/fetcher";
 
-const fetcher = (url: string) =>
-  fetch(url).then((r) => {
-    if (!r.ok) throw new Error("Failed to fetch");
-    return r.json();
-  });
-
+/**
+ * Loads todos for a group, optionally filtering by status.
+ * @param groupId Group identifier.
+ * @param status Optional todo status filter.
+ */
 export function useTodos(groupId: string, status?: string) {
   const url = groupId
     ? `/api/groups/${groupId}/todos${status ? `?status=${status}` : ""}`

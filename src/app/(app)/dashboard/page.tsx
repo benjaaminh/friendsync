@@ -1,9 +1,13 @@
+/**
+ * Next.js page component for the /(app)/dashboard route segment.
+ */
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { JoinWithCode } from "@/components/groups/join-with-code";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -30,9 +34,12 @@ export default async function DashboardPage() {
             Welcome back, {session.user.name?.split(" ")[0]}
           </p>
         </div>
-        <Link href="/groups/new">
-          <Button>Create Group</Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <JoinWithCode />
+          <Link href="/groups/new">
+            <Button>Create Group</Button>
+          </Link>
+        </div>
       </div>
 
       {groups.length === 0 ? (

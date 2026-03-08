@@ -1,3 +1,6 @@
+/**
+ * Reusable UI component for scroll area.
+ */
 "use client"
 
 import * as React from "react"

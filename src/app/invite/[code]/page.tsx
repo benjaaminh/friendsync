@@ -1,3 +1,6 @@
+/**
+ * Next.js page component for accepting a group invite using an invite code.
+ */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -114,12 +117,12 @@ export default function InvitePage() {
             <Button
               className="w-full"
               onClick={() =>
-                signIn("google", {
+                signIn(undefined, {
                   callbackUrl: `/invite/${code}`,
                 })
               }
             >
-              Sign in with Google to Join
+              Sign in to Join
             </Button>
           )}
         </CardContent>

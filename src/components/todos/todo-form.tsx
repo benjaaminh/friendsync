@@ -1,6 +1,9 @@
+/**
+ * Feature component responsible for todo form rendering and interactions.
+ */
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -9,16 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { TodoFormFields } from "@/components/todos/todo-form-fields";
 
 interface TodoFormProps {
   isOpen: boolean;
@@ -30,17 +24,23 @@ interface TodoFormProps {
 
 export function TodoForm({ isOpen, onClose, groupId, defaultValues, onSuccess }: TodoFormProps) {
   const [loading, setLoading] = useState(false);
+  const [title, setTitle] = useState(defaultValues?.title ?? "");
+  const [description, setDescription] = useState(defaultValues?.description ?? "");
   const [duration, setDuration] = useState(String(defaultValues?.duration || 60));
 
   const isEdit = !!defaultValues?.id;
 
+  useEffect(() => {
+    if (!isOpen) return;
+    setTitle(defaultValues?.title ?? "");
+    setDescription(defaultValues?.description ?? "");
+    setDuration(String(defaultValues?.duration ?? 60));
+  }, [defaultValues, isOpen]);
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (!title.trim()) return;
     setLoading(true);
-
-    const formData = new FormData(e.currentTarget);
-    const title = formData.get("title") as string;
-    const description = formData.get("description") as string;
 
     try {
       const url = isEdit
@@ -50,7 +50,11 @@ export function TodoForm({ isOpen, onClose, groupId, defaultValues, onSuccess }:
       const res = await fetch(url, {
         method: isEdit ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, description, duration: parseInt(duration) }),
+        body: JSON.stringify({
+          title: title.trim(),
+          description: description.trim(),
+          duration: parseInt(duration, 10),
+        }),
       });
 
       if (!res.ok) {
@@ -74,49 +78,19 @@ export function TodoForm({ isOpen, onClose, groupId, defaultValues, onSuccess }:
           <DialogTitle>{isEdit ? "Edit Todo" : "Add Todo"}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="title">What do you want to do?</Label>
-            <Input
-              id="title"
-              name="title"
-              defaultValue={defaultValues?.title}
-              placeholder="e.g., Movie night, Board game session"
-              required
-              maxLength={100}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="description">Details (optional)</Label>
-            <Textarea
-              id="description"
-              name="description"
-              defaultValue={defaultValues?.description}
-              placeholder="Any notes or details..."
-              rows={2}
-              maxLength={500}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Estimated Duration</Label>
-            <Select value={duration} onValueChange={setDuration}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="30">30 minutes</SelectItem>
-                <SelectItem value="60">1 hour</SelectItem>
-                <SelectItem value="90">1.5 hours</SelectItem>
-                <SelectItem value="120">2 hours</SelectItem>
-                <SelectItem value="180">3 hours</SelectItem>
-                <SelectItem value="240">4 hours</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <TodoFormFields
+            title={title}
+            onTitleChange={setTitle}
+            description={description}
+            onDescriptionChange={setDescription}
+            duration={duration}
+            onDurationChange={setDuration}
+          />
           <div className="flex gap-2 justify-end">
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={loading || !title.trim()}>
               {loading ? "Saving..." : isEdit ? "Update" : "Add Todo"}
             </Button>
           </div>

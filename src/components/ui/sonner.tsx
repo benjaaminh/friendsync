@@ -1,3 +1,6 @@
+/**
+ * Reusable UI component for sonner.
+ */
 "use client"
 
 import {

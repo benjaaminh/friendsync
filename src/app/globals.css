@@ -1,3 +1,4 @@
+/* Global styles for the application shell and shared UI primitives. */
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";

@@ -1,7 +1,13 @@
+/**
+ * API route handlers for /api/groups requests and responses.
+ */
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+/**
+ * Returns all groups the authenticated user belongs to, including members and aggregate counts.
+ */
 export async function GET() {
   const session = await auth();
   if (!session?.user) {
@@ -14,7 +20,7 @@ export async function GET() {
     },
     include: {
       members: {
-        include: { user: { select: { id: true, name: true, email: true, image: true } } },
+        include: { user: { select: { id: true, username: true, name: true, image: true } } },
       },
       _count: { select: { members: true, todos: true } },
     },
@@ -24,6 +30,10 @@ export async function GET() {
   return NextResponse.json(groups);
 }
 
+/**
+ * Creates a new group and automatically adds the creator as an ADMIN member.
+ * @param request Incoming request containing `name` and optional `description`.
+ */
 export async function POST(request: Request) {
   const session = await auth();
   if (!session?.user) {
@@ -51,7 +61,7 @@ export async function POST(request: Request) {
     },
     include: {
       members: {
-        include: { user: { select: { id: true, name: true, email: true, image: true } } },
+        include: { user: { select: { id: true, username: true, name: true, image: true } } },
       },
       _count: { select: { members: true, todos: true } },
     },

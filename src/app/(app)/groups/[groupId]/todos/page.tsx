@@ -1,3 +1,6 @@
+/**
+ * Next.js page component for creating, viewing, and scheduling group todos.
+ */
 "use client";
 
 import { useState } from "react";

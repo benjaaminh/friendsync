@@ -1,3 +1,6 @@
+/**
+ * Feature component responsible for sidebar rendering and interactions.
+ */
 "use client";
 
 import Link from "next/link";
@@ -9,8 +12,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { UserAvatar } from "@/components/auth/user-avatar";
 import { cn } from "@/lib/utils";
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
+import { fetcher } from "@/lib/fetcher";
 
 interface Group {
   id: string;
@@ -102,9 +104,6 @@ export function Sidebar() {
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium truncate">
               {session?.user?.name}
-            </p>
-            <p className="text-xs text-muted-foreground truncate">
-              {session?.user?.email}
             </p>
           </div>
         </div>

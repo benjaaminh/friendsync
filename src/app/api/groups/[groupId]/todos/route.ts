@@ -1,7 +1,13 @@
+/**
+ * API route handlers for listing and creating todos in a group.
+ */
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+/**
+ * Lists todos for a group, optionally filtered by status.
+ */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ groupId: string }> }
@@ -32,6 +38,10 @@ export async function GET(
   return NextResponse.json(todos);
 }
 
+/**
+ * Creates a new todo in the target group.
+ * @param request Incoming request containing `title` and optional `description`/`duration`.
+ */
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ groupId: string }> }

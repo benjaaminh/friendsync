@@ -1,8 +1,14 @@
+/**
+ * API route handlers for creating and managing invite links for a group.
+ */
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { nanoid } from "nanoid";
 
+/**
+ * Returns active invite links for a group. Requires admin membership.
+ */
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ groupId: string }> }
@@ -26,6 +32,10 @@ export async function GET(
   return NextResponse.json(invites);
 }
 
+/**
+ * Creates an invite link for a group with optional expiry and max use constraints.
+ * @param request Incoming request with optional `expiresInHours` and `maxUses`.
+ */
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ groupId: string }> }

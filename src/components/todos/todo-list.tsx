@@ -1,3 +1,6 @@
+/**
+ * Feature component responsible for todo list rendering and interactions.
+ */
 "use client";
 
 import { useState } from "react";

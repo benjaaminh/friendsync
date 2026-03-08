@@ -1,3 +1,6 @@
+/**
+ * Reusable UI component for dialog.
+ */
 "use client"
 
 import * as React from "react"

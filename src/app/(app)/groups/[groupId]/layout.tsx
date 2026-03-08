@@ -1,3 +1,6 @@
+/**
+ * Next.js layout component for a single group's nested pages and navigation.
+ */
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { notFound, redirect } from "next/navigation";

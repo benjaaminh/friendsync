@@ -1,3 +1,6 @@
+/**
+ * Next.js page component for the /(app)/groups/new route segment.
+ */
 "use client";
 
 import { useState } from "react";
