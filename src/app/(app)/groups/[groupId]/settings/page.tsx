@@ -32,7 +32,6 @@ interface Member {
   user: {
     id: string;
     username: string;
-    name: string | null;
     image: string | null;
   };
 }
@@ -200,10 +199,9 @@ export default function GroupSettingsPage() {
         <CardContent className="space-y-3">
           {group.members.map((member) => (
             <div key={member.id} className="flex items-center gap-3">
-              <UserAvatar name={member.user.name} image={member.user.image} />
+              <UserAvatar name={member.user.username} image={member.user.image} />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{member.user.name}</p>
-                <p className="text-xs text-muted-foreground truncate">@{member.user.username}</p>
+                <p className="text-sm font-medium truncate">@{member.user.username}</p>
               </div>
               <Badge variant={member.role === "ADMIN" ? "default" : "secondary"}>
                 {member.role.toLowerCase()}
@@ -312,7 +310,7 @@ export default function GroupSettingsPage() {
           <DialogHeader>
             <DialogTitle>Remove Member</DialogTitle>
             <DialogDescription>
-              Remove {showRemoveMember?.user.name} from the group?
+              Remove @{showRemoveMember?.user.username} from the group?
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

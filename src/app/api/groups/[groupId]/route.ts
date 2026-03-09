@@ -34,7 +34,7 @@ export async function GET(
     where: { id: groupId },
     include: {
       members: {
-        include: { user: { select: { id: true, username: true, name: true, image: true } } },
+        include: { user: { select: { id: true, username: true, image: true } } },
       },
       _count: { select: { members: true, todos: true } },
     },

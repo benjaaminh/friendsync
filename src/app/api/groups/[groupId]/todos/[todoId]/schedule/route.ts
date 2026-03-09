@@ -80,7 +80,7 @@ export async function POST(
       calendarEventId: null,
     },
     include: {
-      creator: { select: { id: true, name: true, image: true } },
+      creator: { select: { id: true, username: true, image: true } },
     },
   });
 

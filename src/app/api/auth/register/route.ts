@@ -7,11 +7,11 @@ import { prisma } from "@/lib/prisma";
 
 /**
  * Registers a new user account after validating username and password constraints.
- * @param req Incoming request containing `username`, optional `name`, and `password`.
+ * @param req Incoming request containing `username` and `password`.
  */
 export async function POST(req: Request) {
   try {
-    const { username, name, password } = await req.json();
+    const { username, password } = await req.json();
 
     if (!username || !password) {
       return NextResponse.json(
@@ -54,7 +54,6 @@ export async function POST(req: Request) {
     const user = await prisma.user.create({
       data: {
         username,
-        name: name || username,
         passwordHash,
       },
     });

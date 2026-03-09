@@ -40,7 +40,7 @@ export async function GET(
       title: true,
       duration: true,
       scheduledAt: true,
-      creator: { select: { name: true } },
+      creator: { select: { username: true } },
     },
     orderBy: { scheduledAt: "asc" },
   });
@@ -54,7 +54,7 @@ export async function GET(
         start: event.scheduledAt!.toISOString(),
         end: new Date(event.scheduledAt!.getTime() + event.duration * 60 * 1000).toISOString(),
         duration: event.duration,
-        creatorName: event.creator.name,
+        creatorName: event.creator.username,
       })),
   });
 }

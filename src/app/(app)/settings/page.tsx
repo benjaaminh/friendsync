@@ -91,8 +91,8 @@ export default function UserSettingsPage() {
         </CardHeader>
         <CardContent className="space-y-2">
           <div className="text-sm">
-            <span className="text-muted-foreground">Name:</span>{" "}
-            {session?.user?.name}
+            <span className="text-muted-foreground">Username:</span>{" "}
+            @{session?.user?.username}
           </div>
         </CardContent>
       </Card>

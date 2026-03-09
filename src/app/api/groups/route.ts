@@ -20,7 +20,7 @@ export async function GET() {
     },
     include: {
       members: {
-        include: { user: { select: { id: true, username: true, name: true, image: true } } },
+        include: { user: { select: { id: true, username: true, image: true } } },
       },
       _count: { select: { members: true, todos: true } },
     },
@@ -61,7 +61,7 @@ export async function POST(request: Request) {
     },
     include: {
       members: {
-        include: { user: { select: { id: true, username: true, name: true, image: true } } },
+        include: { user: { select: { id: true, username: true, image: true } } },
       },
       _count: { select: { members: true, todos: true } },
     },

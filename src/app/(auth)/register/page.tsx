@@ -21,7 +21,6 @@ import { Label } from "@/components/ui/label";
 export default function RegisterPage() {
   const router = useRouter();
   const [username, setUsername] = useState("");
-  const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -35,7 +34,7 @@ export default function RegisterPage() {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, name, password }),
+        body: JSON.stringify({ username, password }),
       });
 
       const data = await res.json();
@@ -94,16 +93,6 @@ export default function RegisterPage() {
               maxLength={20}
               pattern="[a-zA-Z0-9_]+"
               title="Letters, numbers, and underscores only"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="name">Display Name</Label>
-            <Input
-              id="name"
-              type="text"
-              placeholder="Your name (optional)"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
             />
           </div>
           <div className="space-y-2">

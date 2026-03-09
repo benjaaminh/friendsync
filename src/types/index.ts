@@ -17,7 +17,6 @@ export interface GroupWithMembers {
     user: {
       id: string;
       username: string;
-      name: string | null;
       image: string | null;
     };
   }[];
@@ -45,7 +44,7 @@ export interface TodoWithCreator {
   createdAt: Date;
   creator: { //creator of todo
     id: string;
-    name: string | null;
+    username: string;
     image: string | null;
   };
 }

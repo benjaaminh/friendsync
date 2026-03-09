@@ -78,7 +78,7 @@ export function TodoItem({ todo, groupId, currentUserId, onUpdate }: TodoItemPro
     <>
       <Card>
         <CardContent className="flex items-start gap-3 py-4">
-          <UserAvatar name={todo.creator.name} image={todo.creator.image} className="mt-0.5 h-7 w-7" />
+          <UserAvatar name={todo.creator.username} image={todo.creator.image} className="mt-0.5 h-7 w-7" />
           <div className="flex-1 min-w-0 space-y-1">
             <div className="flex items-center gap-2 flex-wrap">
               <h3 className="font-medium">{todo.title}</h3>
@@ -100,7 +100,7 @@ export function TodoItem({ todo, groupId, currentUserId, onUpdate }: TodoItemPro
               </p>
             )}
             <p className="text-xs text-muted-foreground">
-              by {todo.creator.name} &middot; {format(new Date(todo.createdAt), "MMM d")}
+              by @{todo.creator.username} &middot; {format(new Date(todo.createdAt), "MMM d")}
             </p>
           </div>
           <div className="flex gap-1 flex-shrink-0">

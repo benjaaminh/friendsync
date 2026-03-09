@@ -30,7 +30,7 @@ export async function GET(
       ...(status && { status: status as "PENDING" | "SCHEDULED" | "COMPLETED" | "CANCELLED" }),
     },
     include: {
-      creator: { select: { id: true, name: true, image: true } },
+      creator: { select: { id: true, username: true, image: true } },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -71,7 +71,7 @@ export async function POST(
       duration: duration || 60,
     },
     include: {
-      creator: { select: { id: true, name: true, image: true } },
+      creator: { select: { id: true, username: true, image: true } },
     },
   });
 

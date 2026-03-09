@@ -107,7 +107,7 @@ export default function InvitePage() {
           ) : session?.user ? (
             <div className="space-y-2">
               <p className="text-sm text-muted-foreground">
-                Signed in as {session.user.name}
+                Signed in as @{session.user.username}
               </p>
               <Button className="w-full" onClick={handleJoin} disabled={joining}>
                 {joining ? "Joining..." : "Join Group"}

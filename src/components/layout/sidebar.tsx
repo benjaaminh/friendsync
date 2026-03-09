@@ -34,7 +34,6 @@ export function Sidebar() {
     <aside className="hidden md:flex h-screen w-64 flex-col border-r bg-card">
       <div className="flex h-14 items-center px-4 font-semibold text-lg">
         <Link href="/dashboard" className="flex items-center gap-2">
-          <span className="text-primary">FC</span>
           <span>FriendSync</span>
         </Link>
       </div>
@@ -98,12 +97,12 @@ export function Sidebar() {
       <div className="p-3">
         <div className="flex items-center gap-3 px-2 mb-2">
           <UserAvatar
-            name={session?.user?.name}
+            name={session?.user?.username}
             image={session?.user?.image}
           />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium truncate">
-              {session?.user?.name}
+              @{session?.user?.username}
             </p>
           </div>
         </div>
@@ -126,12 +125,12 @@ export function MobileHeader() {
   return (
     <header className="md:hidden flex h-14 items-center justify-between border-b px-4 bg-card">
       <Link href="/dashboard" className="font-semibold text-lg">
-        <span className="text-primary">FC</span> FriendSync
+        FriendSync
       </Link>
       <div className="flex items-center gap-2">
         <Link href="/settings">
           <UserAvatar
-            name={session?.user?.name}
+            name={session?.user?.username}
             image={session?.user?.image}
           />
         </Link>

@@ -11,6 +11,7 @@ declare module "next-auth" {
   interface Session {
     user: {
       id: string;
+      username: string;
       name?: string | null;
       image?: string | null;
     };
@@ -20,6 +21,7 @@ declare module "next-auth" {
 declare module "next-auth" {
   interface JWT {
     id?: string;
+    username?: string;
   }
 }
 
@@ -52,7 +54,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         return {
           id: user.id,
-          name: user.name,
+          username: user.username,
           image: user.image,
         };
       },
@@ -68,6 +70,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        if ("username" in user && typeof user.username === "string") {
+          token.username = user.username;
+        }
       }
       return token;
     },
@@ -77,6 +82,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async session({ session, token }) {
       if (token.id) {
         session.user.id = token.id as string;
+      }
+      if (token.username && typeof token.username === "string") {
+        session.user.username = token.username;
       }
       return session;
     },
