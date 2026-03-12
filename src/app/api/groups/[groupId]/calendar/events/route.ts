@@ -2,7 +2,7 @@
  * API route handler that returns scheduled calendar events for a group.
  */
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { requireGroupAccess } from "@/lib/group-access";
 import { prisma } from "@/lib/prisma";
 
 // get all events
@@ -10,17 +10,9 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ groupId: string }> }
 ) {
-  const session = await auth();
-  // if no user is signed in, we cant fetch events
-  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const { groupId } = await params;
-
-  // ensure signed in user is member of the group with events
-  const membership = await prisma.groupMember.findUnique({
-    where: { userId_groupId: { userId: session.user.id, groupId } },
-  });
-  if (!membership) return NextResponse.json({ error: "Not a member" }, { status: 403 });
+  const access = await requireGroupAccess(groupId);
+  if (!access.ok) return access.response;
 
   // length of calendar (a week)
   const searchParams = request.nextUrl.searchParams;

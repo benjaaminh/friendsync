@@ -2,7 +2,7 @@
  * API route handler for assigning a specific time slot to a group todo. route: /groups/:groupId/todos/:todoId/schedule
  */
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { requireGroupAccess } from "@/lib/group-access";
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -14,21 +14,18 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ groupId: string; todoId: string }> }
 ) {
-  const session = await auth();
-  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const { groupId, todoId } = await params;
-  const membership = await prisma.groupMember.findUnique({
-    where: { userId_groupId: { userId: session.user.id, groupId } },
-  });
-  if (!membership) return NextResponse.json({ error: "Not a member" }, { status: 403 });
+  const access = await requireGroupAccess(groupId);
+  if (!access.ok) return access.response;
 
+  // get the todo
   const todo = await prisma.todo.findUnique({ where: { id: todoId, groupId } });
   if (!todo) return NextResponse.json({ error: "Todo not found" }, { status: 404 });
   if (todo.status !== "PENDING") {
     return NextResponse.json({ error: "Todo is not in PENDING status" }, { status: 400 });
   }
 
+  //get start and end from body
   const body = await request.json();
   const { start, end } = body;
 
@@ -43,24 +40,28 @@ export async function POST(
     return NextResponse.json({ error: "Invalid start/end range" }, { status: 400 });
   }
 
-  // Verify slot doesn't overlap with already scheduled todos in this group
+  // get already scheduled todos. only fetch those that may have overlap
   const scheduledTodos = await prisma.todo.findMany({
     where: {
       groupId,
       status: "SCHEDULED",
       scheduledAt: {
-        lt: endAt,
+        lt: endAt, // fetch only those that start before this one ends (scheduledAt < endAt)
       },
     },
     select: { duration: true, scheduledAt: true },
   });
 
+  // check if there is overlap between already scheduled todos and new
   const hasOverlap = scheduledTodos.some((scheduledTodo) => {
     if (!scheduledTodo.scheduledAt) return false;
 
     const scheduledStart = scheduledTodo.scheduledAt.getTime();
     const scheduledEnd = scheduledStart + scheduledTodo.duration * 60 * 1000;
 
+    // if an existing todo ends after the one to be created starts, there is overlap.
+    // for example: we want to start at 11, but an existing one ends at 13, so there must be overlap
+    // we have already checked that the scheduledTodos should start before this one ends.
     return scheduledEnd > startAt.getTime();
   });
 

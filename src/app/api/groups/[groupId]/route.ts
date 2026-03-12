@@ -2,19 +2,8 @@
  * API route handlers for fetching and updating a single group's metadata.
  */
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { requireGroupAccess } from "@/lib/group-access";
 import { prisma } from "@/lib/prisma";
-
-/**
- * Checks whether a user is a member of a group.
- * @param groupId Group identifier.
- * @param userId User identifier.
- */
-async function checkMembership(groupId: string, userId: string) {
-  return prisma.groupMember.findUnique({
-    where: { userId_groupId: { userId, groupId } },
-  });
-}
 
 /**
  * Returns a group's metadata, members, and caller role when the caller is a member.
@@ -23,12 +12,9 @@ export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ groupId: string }> }
 ) {
-  const session = await auth();
-  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const { groupId } = await params;
-  const membership = await checkMembership(groupId, session.user.id);
-  if (!membership) return NextResponse.json({ error: "Not a member" }, { status: 403 });
+  const access = await requireGroupAccess(groupId);
+  if (!access.ok) return access.response;
 
   const group = await prisma.group.findUnique({
     where: { id: groupId },
@@ -42,7 +28,7 @@ export async function GET(
 
   if (!group) return NextResponse.json({ error: "Group not found" }, { status: 404 });
 
-  return NextResponse.json({ ...group, currentUserRole: membership.role });
+  return NextResponse.json({ ...group, currentUserRole: access.membership.role });
 }
 
 /**
@@ -53,14 +39,9 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ groupId: string }> }
 ) {
-  const session = await auth();
-  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const { groupId } = await params;
-  const membership = await checkMembership(groupId, session.user.id);
-  if (!membership || membership.role !== "ADMIN") {
-    return NextResponse.json({ error: "Admin access required" }, { status: 403 });
-  }
+  const access = await requireGroupAccess(groupId, { requireAdmin: true });
+  if (!access.ok) return access.response;
 
   const body = await request.json();
   const { name, description } = body;
@@ -83,14 +64,9 @@ export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ groupId: string }> }
 ) {
-  const session = await auth();
-  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const { groupId } = await params;
-  const membership = await checkMembership(groupId, session.user.id);
-  if (!membership || membership.role !== "ADMIN") {
-    return NextResponse.json({ error: "Admin access required" }, { status: 403 });
-  }
+  const access = await requireGroupAccess(groupId, { requireAdmin: true });
+  if (!access.ok) return access.response;
 
   await prisma.group.delete({ where: { id: groupId } });
 

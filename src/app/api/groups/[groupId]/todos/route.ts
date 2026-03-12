@@ -2,7 +2,7 @@
  * API route handlers for listing and creating todos in a group.
  */
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { requireGroupAccess } from "@/lib/group-access";
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -12,14 +12,9 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ groupId: string }> }
 ) {
-  const session = await auth();
-  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const { groupId } = await params;
-  const membership = await prisma.groupMember.findUnique({
-    where: { userId_groupId: { userId: session.user.id, groupId } },
-  });
-  if (!membership) return NextResponse.json({ error: "Not a member" }, { status: 403 });
+  const access = await requireGroupAccess(groupId);
+  if (!access.ok) return access.response;
 
   const searchParams = request.nextUrl.searchParams;
   const status = searchParams.get("status");
@@ -27,7 +22,7 @@ export async function GET(
   const todos = await prisma.todo.findMany({
     where: {
       groupId,
-      ...(status && { status: status as "PENDING" | "SCHEDULED" | "COMPLETED" | "CANCELLED" }),
+      ...(status && { status: status as "PENDING" | "SCHEDULED" | "COMPLETED" | "CANCELLED" }), //valid statuses
     },
     include: {
       creator: { select: { id: true, username: true, image: true } },
@@ -46,16 +41,12 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ groupId: string }> }
 ) {
-  const session = await auth();
-  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const { groupId } = await params;
-  const membership = await prisma.groupMember.findUnique({
-    where: { userId_groupId: { userId: session.user.id, groupId } },
-  });
-  if (!membership) return NextResponse.json({ error: "Not a member" }, { status: 403 });
+  const access = await requireGroupAccess(groupId);
+  if (!access.ok) return access.response;
 
   const body = await request.json();
+  //all fields of the req body
   const { title, description, duration } = body;
 
   if (!title || typeof title !== "string" || title.trim().length === 0) {
@@ -65,10 +56,10 @@ export async function POST(
   const todo = await prisma.todo.create({
     data: {
       groupId,
-      createdById: session.user.id,
+      createdById: access.userId,
       title: title.trim(),
       description: description?.trim() || null,
-      duration: duration || 60,
+      duration: duration || 60, // default to 60 mins
     },
     include: {
       creator: { select: { id: true, username: true, image: true } },

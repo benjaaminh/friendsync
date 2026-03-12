@@ -2,7 +2,7 @@
  * API route handlers for creating and managing invite links for a group.
  */
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { requireGroupAccess } from "@/lib/group-access";
 import { prisma } from "@/lib/prisma";
 import { nanoid } from "nanoid";
 
@@ -13,16 +13,9 @@ export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ groupId: string }> }
 ) {
-  const session = await auth();
-  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const { groupId } = await params;
-  const membership = await prisma.groupMember.findUnique({
-    where: { userId_groupId: { userId: session.user.id, groupId } },
-  });
-  if (!membership || membership.role !== "ADMIN") {
-    return NextResponse.json({ error: "Admin access required" }, { status: 403 });
-  }
+  const access = await requireGroupAccess(groupId, { requireAdmin: true });
+  if (!access.ok) return access.response;
 
   const invites = await prisma.inviteLink.findMany({
     where: { groupId, active: true },
@@ -40,16 +33,9 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ groupId: string }> }
 ) {
-  const session = await auth();
-  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const { groupId } = await params;
-  const membership = await prisma.groupMember.findUnique({
-    where: { userId_groupId: { userId: session.user.id, groupId } },
-  });
-  if (!membership || membership.role !== "ADMIN") {
-    return NextResponse.json({ error: "Admin access required" }, { status: 403 });
-  }
+  const access = await requireGroupAccess(groupId, { requireAdmin: true });
+  if (!access.ok) return access.response;
 
   let body: { expiresInHours?: number; maxUses?: number } = {};
   try {
