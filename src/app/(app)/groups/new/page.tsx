@@ -47,8 +47,16 @@ export default function NewGroupPage() {
   }
 
   return (
-    <div className="mx-auto max-w-md">
-      <Card>
+    <div className="mx-auto max-w-lg space-y-4">
+      <div className="relative overflow-hidden rounded-[1.1rem] border border-sky-200/80 bg-gradient-to-br from-sky-200/75 via-cyan-100/65 to-emerald-100/70 p-5 shadow-[0_24px_45px_rgba(17,118,174,0.24)] backdrop-blur-xl">
+        <div className="absolute inset-x-0 top-0 h-9 border-b border-white/75 bg-[linear-gradient(180deg,rgba(255,255,255,0.75)_0%,rgba(201,232,250,0.55)_100%)]" />
+        <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/60 blur-2xl" />
+        <div className="pointer-events-none absolute -bottom-8 left-8 h-24 w-24 rounded-full bg-cyan-300/50 blur-2xl" />
+        <p className="relative pt-5 text-xs font-semibold uppercase tracking-[0.18em] text-sky-700/90">
+          New Group
+        </p>
+      </div>
+      <Card className="overflow-hidden border-sky-200/80 bg-white/70 shadow-[0_22px_38px_rgba(22,114,171,0.2)]">
         <CardHeader>
           <CardTitle>Create a New Group</CardTitle>
         </CardHeader>

@@ -66,7 +66,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <Card className="w-full max-w-sm">
+    <Card className="w-full max-w-sm border-0 bg-transparent py-5 shadow-none">
       <CardHeader className="text-center">
         <CardTitle className="text-2xl">
           <span className="text-primary">Friend</span>Cal
@@ -76,12 +76,12 @@ export default function RegisterPage() {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+            <div className="rounded-xl border border-red-300/45 bg-red-100/60 p-3 text-sm text-destructive">
               {error}
             </div>
           )}
           <div className="space-y-2">
-            <Label htmlFor="username">Username</Label>
+            <Label htmlFor="username" className="text-sky-900/85">Username</Label>
             <Input
               id="username"
               type="text"
@@ -96,7 +96,7 @@ export default function RegisterPage() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password" className="text-sky-900/85">Password</Label>
             <Input
               id="password"
               type="password"
@@ -110,9 +110,9 @@ export default function RegisterPage() {
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Creating account..." : "Create Account"}
           </Button>
-          <p className="text-center text-sm text-muted-foreground">
+          <p className="text-center text-sm text-muted-foreground/90">
             Already have an account?{" "}
-            <Link href="/signin" className="text-primary underline">
+            <Link href="/signin" className="font-medium text-sky-700 underline underline-offset-4">
               Sign in
             </Link>
           </p>

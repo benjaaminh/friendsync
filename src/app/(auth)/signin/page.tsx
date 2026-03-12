@@ -56,7 +56,7 @@ function SignInContent() {
   }
 
   return (
-    <Card className="w-full max-w-sm">
+    <Card className="w-full max-w-sm border-0 bg-transparent py-5 shadow-none">
       <CardHeader className="text-center">
         <CardTitle className="text-2xl">
           <span className="text-primary">Friend</span>Cal
@@ -68,14 +68,14 @@ function SignInContent() {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           {(urlError || error) && (
-            <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+            <div className="rounded-xl border border-red-300/45 bg-red-100/60 p-3 text-sm text-destructive">
               {urlError === "token_expired"
                 ? "Your session expired. Please sign in again."
                 : error || "An error occurred. Please try again."}
             </div>
           )}
           <div className="space-y-2">
-            <Label htmlFor="username">Username</Label>
+            <Label htmlFor="username" className="text-sky-900/85">Username</Label>
             <Input
               id="username"
               type="text"
@@ -86,7 +86,7 @@ function SignInContent() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password" className="text-sky-900/85">Password</Label>
             <Input
               id="password"
               type="password"
@@ -99,9 +99,9 @@ function SignInContent() {
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Signing in..." : "Sign In"}
           </Button>
-          <p className="text-center text-sm text-muted-foreground">
+          <p className="text-center text-sm text-muted-foreground/90">
             Don&apos;t have an account?{" "}
-            <Link href="/register" className="text-primary underline">
+            <Link href="/register" className="font-medium text-sky-700 underline underline-offset-4">
               Register
             </Link>
           </p>

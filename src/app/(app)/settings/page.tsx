@@ -83,7 +83,11 @@ export default function UserSettingsPage() {
 
   return (
     <div className="max-w-md space-y-6">
-      <h1 className="text-2xl font-bold">Settings</h1>
+      <div className="aero-panel p-5">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-700/80">
+          Settings
+        </p>
+      </div>
 
       <Card>
         <CardHeader>

@@ -28,13 +28,15 @@ export default async function DashboardPage() {
   });
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 aero-page">
+      <section className="aero-panel flex flex-col gap-4 p-5 md:flex-row md:items-center md:justify-between md:p-6">
         <div>
-          <h1 className="text-2xl font-bold">Dashboard</h1>
-          <p className="text-muted-foreground">
-            Welcome back, {session.user.username}
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-700/80">
+            Dashboard
           </p>
+          <h1 className="mt-1 text-2xl font-bold md:text-3xl">
+            Welcome back, {session.user.username}
+          </h1>
         </div>
         <div className="flex items-center gap-2">
           <JoinWithCode /> {/* join a group with code */}
@@ -42,10 +44,10 @@ export default async function DashboardPage() {
             <Button>Create Group</Button>
           </Link>
         </div>
-      </div>
+      </section>
 
       {groups.length === 0 ? ( // if no groups exist?
-        <Card>
+        <Card className="aero-panel border-0">
           <CardContent className="flex flex-col items-center justify-center py-12 text-center">
             <h3 className="text-lg font-semibold">No groups yet</h3>
             <p className="text-muted-foreground mt-1 mb-4 max-w-sm">
@@ -60,7 +62,7 @@ export default async function DashboardPage() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {groups.map((group) => ( // if they exist, render all
             <Link key={group.id} href={`/groups/${group.id}/calendar`}> {/* navigate to specific group */}
-              <Card className="transition-colors hover:bg-accent/50 cursor-pointer h-full">
+              <Card className="h-full cursor-pointer border-white/65 transition-all hover:-translate-y-0.5 hover:bg-white/80 hover:shadow-[0_16px_30px_rgba(36,104,168,0.2)]">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg">{group.name}</CardTitle>
                 </CardHeader>
@@ -79,7 +81,7 @@ export default async function DashboardPage() {
                     {group.members.map((member) => ( //the members of the group
                       <div
                         key={member.user.id}
-                        className="h-7 w-7 rounded-full border-2 border-background bg-muted flex items-center justify-center text-xs font-medium overflow-hidden"
+                        className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full border-2 border-white/80 bg-white/80 text-xs font-medium"
                         title={member.user.username}
                       >
                         {member.user.image ? (
