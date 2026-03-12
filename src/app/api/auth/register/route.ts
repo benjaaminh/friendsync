@@ -49,7 +49,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const passwordHash = await bcrypt.hash(password, 12);
+    const passwordHash = await bcrypt.hash(password, 12); // typical bcrypt hashing
 
     const user = await prisma.user.create({
       data: {

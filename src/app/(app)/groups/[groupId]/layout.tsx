@@ -1,5 +1,5 @@
 /**
- * Next.js layout component for a single group's nested pages and navigation.
+ * Next.js layout component for a single group's nested pages and navigation. kind of a dashboard for the group
  */
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";

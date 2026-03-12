@@ -12,6 +12,7 @@ export default async function AppLayout({
 }) {
   const session = await auth();
 
+  //redirect to sign in if not signed in
   if (!session?.user) {
     redirect("/signin");
   }

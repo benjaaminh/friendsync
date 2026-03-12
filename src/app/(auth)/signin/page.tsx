@@ -36,6 +36,7 @@ function SignInContent() {
     setLoading(true);
 
     try {
+      // next auth based sign in
       const result = await signIn("credentials", {
         username,
         password,
@@ -47,7 +48,7 @@ function SignInContent() {
         return;
       }
 
-      router.push(callbackUrl);
+      router.push(callbackUrl); // go back to dashboard
     } catch {
       setError("Something went wrong");
     } finally {

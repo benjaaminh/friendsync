@@ -5,6 +5,7 @@
 
 import { useState } from "react";
 import { format } from "date-fns";
+import { enGB } from "date-fns/locale";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -96,11 +97,11 @@ export function TodoItem({ todo, groupId, currentUserId, onUpdate }: TodoItemPro
             )}
             {todo.scheduledAt && (
               <p className="text-xs text-muted-foreground">
-                Scheduled: {format(new Date(todo.scheduledAt), "PPp")}
+                Scheduled: {format(new Date(todo.scheduledAt), "d/M/yyyy 'at' HH:mm", { locale: enGB })}
               </p>
             )}
             <p className="text-xs text-muted-foreground">
-              by @{todo.creator.username} &middot; {format(new Date(todo.createdAt), "MMM d")}
+              by @{todo.creator.username} &middot; {format(new Date(todo.createdAt), "d MMMM", { locale: enGB })}
             </p>
           </div>
           <div className="flex gap-1 flex-shrink-0">

@@ -84,6 +84,7 @@ export default async function DashboardPage() {
                         className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full border-2 border-white/80 bg-white/80 text-xs font-medium"
                         title={member.user.username}
                       >
+                        {/* member pfp */}
                         {member.user.image ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img

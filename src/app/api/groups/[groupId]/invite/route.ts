@@ -58,7 +58,7 @@ export async function POST(
     // Use defaults
   }
 
-  const code = nanoid(8);
+  const code = nanoid(8); // create id
   const expiresAt = body.expiresInHours
     ? new Date(Date.now() + body.expiresInHours * 60 * 60 * 1000)
     : null;

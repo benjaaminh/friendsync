@@ -79,6 +79,7 @@ export default function UserSettingsPage() {
     }
   }
 
+  // automatic timezone
   const detectedTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   return (
@@ -113,9 +114,9 @@ export default function UserSettingsPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {timezones.map((tz) => (
+                {timezones.map((tz) => ( // list timezones
                   <SelectItem key={tz} value={tz}>
-                    {tz.replace(/_/g, " ")}
+                    {tz.replace(/_/g, " ")} {/* replace underscores with space for user readability */}
                     {tz === detectedTimezone ? " (detected)" : ""}
                   </SelectItem>
                 ))}

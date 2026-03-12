@@ -59,15 +59,17 @@ export default function GroupSettingsPage() {
   const { data: session } = useSession();
   const groupId = params.groupId as string;
 
+  //groups fetched
   const { data: group, mutate: mutateGroup } = useSWR<GroupData>(
     `/api/groups/${groupId}`,
     fetcher
   );
+  //invites fetched
   const { data: invites, mutate: mutateInvites } = useSWR<InviteData[]>(
     group?.currentUserRole === "ADMIN" ? `/api/groups/${groupId}/invite` : null,
     fetcher
   );
-
+  //group name
   const [name, setName] = useState("");
   const [showDeleteGroup, setShowDeleteGroup] = useState(false);
   const [showLeave, setShowLeave] = useState(false);
@@ -80,6 +82,7 @@ export default function GroupSettingsPage() {
     if (group) setName(group.name);
   }, [group]);
 
+  // update name
   async function handleUpdateGroup(e: React.FormEvent) {
     e.preventDefault();
     try {
@@ -142,6 +145,7 @@ export default function GroupSettingsPage() {
       });
       if (!res.ok) throw new Error();
       toast.success("Left group");
+      // go back to dashboard
       router.push("/dashboard");
     } catch {
       toast.error("Failed to leave group");
@@ -168,7 +172,7 @@ export default function GroupSettingsPage() {
 
   return (
     <div className="max-w-2xl space-y-6">
-      {/* Group name */}
+      {/* settings visible to admins only */}
       {isAdmin && (
         <Card>
           <CardHeader>
@@ -197,6 +201,7 @@ export default function GroupSettingsPage() {
           )}
         </CardHeader>
         <CardContent className="space-y-3">
+          {/* show all group members */}
           {group.members.map((member) => (
             <div key={member.id} className="flex items-center gap-3 rounded-2xl border border-white/50 bg-white/45 px-3 py-2">
               <UserAvatar name={member.user.username} image={member.user.image} />
@@ -221,7 +226,7 @@ export default function GroupSettingsPage() {
         </CardContent>
       </Card>
 
-      {/* Invite links */}
+      {/* Invite links. visible only to admins */}
       {isAdmin && invites && invites.length > 0 && (
         <Card>
           <CardHeader>
@@ -256,7 +261,7 @@ export default function GroupSettingsPage() {
 
       <Separator />
 
-      {/* Danger zone */}
+      {/* leave and delete group */}
       <div className="rounded-2xl border border-red-300/35 bg-red-100/35 p-4">
         <div className="flex gap-2">
         {!isAdmin && (
@@ -306,7 +311,7 @@ export default function GroupSettingsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Remove member dialog */}
+      {/* Remove member dialog. Member is either null or Member type */}
       <Dialog open={!!showRemoveMember} onOpenChange={() => setShowRemoveMember(null)}>
         <DialogContent>
           <DialogHeader>

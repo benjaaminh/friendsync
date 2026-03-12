@@ -5,6 +5,7 @@
 
 import { useState, useMemo } from "react";
 import { startOfWeek, addDays, format } from "date-fns";
+import { enGB } from "date-fns/locale";
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
 import { useGroupEvents } from "@/hooks/use-group-events";
@@ -43,8 +44,10 @@ export default function CalendarPage() {
     return addDays(base, weekOffset * 7);
   }, [weekOffset]);
 
+  
   const weekEnd = addDays(weekStart, 7);
 
+  // parseable as ISO strings
   const from = weekStart.toISOString();
   const to = weekEnd.toISOString();
 
@@ -59,16 +62,19 @@ export default function CalendarPage() {
     setCreateOpen(true);
   }
 
+  // find duration for selected
   const activeDuration = selectedTodoId
     ? String(pendingTodos.find((t) => t.id === selectedTodoId)?.duration ?? 60)
     : duration;
 
+  // and title
   const activeTitle = selectedTodoId
     ? (pendingTodos.find((t) => t.id === selectedTodoId)?.title ?? "")
     : title;
 
+  // event duration options
   const calendarDurationOptions = useMemo(
-    () => TODO_DURATION_OPTIONS.filter((option) => Number(option.value) <= 240),
+    () => TODO_DURATION_OPTIONS.filter((option) => Number(option.value) <= 600),
     []
   );
 
@@ -98,8 +104,9 @@ export default function CalendarPage() {
         todoId = todo.id;
       }
 
-      const end = new Date(clickedTime.getTime() + durationMinutes * 60 * 1000);
+      const end = new Date(clickedTime.getTime() + durationMinutes * 60 * 1000); //end time of event
 
+      //schedule the created todo
       const scheduleRes = await fetch(`/api/groups/${groupId}/todos/${todoId}/schedule`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -128,15 +135,16 @@ export default function CalendarPage() {
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
         <div className="flex items-center gap-2">
+          {/* buttons for weeks */}
           <Button
             variant="outline"
             size="sm"
             onClick={() => setWeekOffset((o) => o - 1)}
           >
             &larr; Prev
-          </Button>
+          </Button> 
           <span className="text-sm font-medium min-w-[180px] text-center">
-            {format(weekStart, "MMM d")} &ndash; {format(addDays(weekStart, 6), "MMM d, yyyy")}
+            {format(weekStart, "d MMMM", { locale: enGB })} &ndash; {format(addDays(weekStart, 6), "d MMMM yyyy", { locale: enGB })}
           </span>
           <Button
             variant="outline"
@@ -174,23 +182,23 @@ export default function CalendarPage() {
           <span className="inline-block w-3 h-3 rounded-sm bg-blue-500 border border-blue-600" />
           Planned events
         </span>
-        <span className="text-muted-foreground/60">Click on the calendar to add an event</span>
+        <span className="text-muted-foreground/60">Click on a timeslot to add an event</span>
       </div>
 
-      {/* Create event dialog */}
+      {/* Create event dialog. Open based on flag */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Add Event</DialogTitle>
             {clickedTime && (
               <p className="text-sm text-muted-foreground">
-                {format(clickedTime, "EEEE, MMM d 'at' HH:mm")}
+                {format(clickedTime, "EEEE, do 'of' MMMM 'at' HH:mm", { locale: enGB })}
               </p>
             )}
           </DialogHeader>
 
           <div className="grid gap-4 py-2">
-            {/* Pending todos picker */}
+            {/* Pending todos picker in the dialog*/}
             {pendingTodos.length > 0 && (
               <div className="grid gap-2">
                 <Label>Schedule a pending todo</Label>

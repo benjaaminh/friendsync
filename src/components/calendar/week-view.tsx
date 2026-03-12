@@ -5,6 +5,7 @@
 
 import { useMemo } from "react";
 import { addDays, format, isSameDay, parseISO } from "date-fns";
+import { enGB } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 
 const DAY_START_HOUR = 9;
@@ -100,7 +101,7 @@ export function WeekView({
               )}
             >
               <div className="text-xs text-muted-foreground">
-                {format(day, "EEE")}
+                {format(day, "EEE", { locale: enGB })}
               </div>
               <div
                 className={cn(
