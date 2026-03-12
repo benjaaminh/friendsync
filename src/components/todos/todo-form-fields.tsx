@@ -1,3 +1,6 @@
+/**
+ * Options for setting a todo
+ */
 "use client";
 
 import { Input } from "@/components/ui/input";
@@ -16,6 +19,7 @@ export interface TodoDurationOption {
   label: string;
 }
 
+// minutes
 export const TODO_DURATION_OPTIONS: TodoDurationOption[] = [
   { value: "30", label: "30 minutes" },
   { value: "60", label: "1 hour" },
@@ -46,6 +50,7 @@ interface TodoFormFieldsProps {
   durationOptions?: TodoDurationOption[];
 }
 
+//default values for the form. reusable component
 export function TodoFormFields({
   title,
   onTitleChange,
@@ -59,7 +64,7 @@ export function TodoFormFields({
   titleId = "todo-title",
   descriptionId = "todo-description",
   titleLabel = "What do you want to do?",
-  titlePlaceholder = "e.g., Movie night, Board game session",
+  titlePlaceholder = "e.g., Movie night, Bowling...",
   descriptionLabel = "Details (optional)",
   descriptionPlaceholder = "Any notes or details...",
   onTitleEnter,

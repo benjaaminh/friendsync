@@ -1,5 +1,5 @@
 /**
- * Reusable UI component for avatar.
+ * Reusable UI component for avatar (pfp).
  */
 "use client"
 

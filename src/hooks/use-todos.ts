@@ -11,6 +11,8 @@ import { fetcher } from "@/lib/fetcher";
  * @param status Optional todo status filter.
  */
 export function useTodos(groupId: string, status?: string) {
+
+  //todos with a status
   const url = groupId
     ? `/api/groups/${groupId}/todos${status ? `?status=${status}` : ""}`
     : null;

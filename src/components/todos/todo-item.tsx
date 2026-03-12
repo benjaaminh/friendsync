@@ -1,5 +1,5 @@
 /**
- * Feature component responsible for todo item rendering and interactions.
+ * singular todo
  */
 "use client";
 
@@ -60,6 +60,7 @@ export function TodoItem({ todo, groupId, currentUserId, onUpdate }: TodoItemPro
     }
   }
 
+  //complete the todo
   async function handleComplete() {
     try {
       const res = await fetch(`/api/groups/${groupId}/todos/${todo.id}`, {

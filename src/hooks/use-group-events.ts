@@ -22,6 +22,7 @@ export function useGroupEvents(
   from: string,
   to: string
 ) {
+  // get events between dates
   const url = groupId && from && to
     ? `/api/groups/${groupId}/calendar/events?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`
     : null;

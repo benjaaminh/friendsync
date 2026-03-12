@@ -40,6 +40,7 @@ export function TodoList({ todos, groupId, currentUserId, onUpdate }: TodoListPr
   }
 
   return (
+    /* filter todos by their type */
     <Tabs defaultValue="all" onValueChange={setFilter}>
       <TabsList>
         <TabsTrigger value="all">

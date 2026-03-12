@@ -31,7 +31,7 @@ export function ScheduleDialog({
   onScheduled,
 }: ScheduleDialogProps) {
   const [date, setDate] = useState(() => format(new Date(), "yyyy-MM-dd"));
-  const [time, setTime] = useState("09:00");
+  const [time, setTime] = useState("09:00"); //default to 9 for time
   const [scheduling, setScheduling] = useState(false);
 
   async function handleSchedule() {
@@ -81,7 +81,7 @@ export function ScheduleDialog({
             <Label htmlFor="schedule-date">Date</Label>
             <Input
               id="schedule-date"
-              type="date"
+              type="date" //calendar input
               value={date}
               onChange={(e) => setDate(e.target.value)}
             />

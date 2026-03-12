@@ -58,7 +58,8 @@ export function Sidebar() {
             </Link>
           ))}
         </nav>
-
+        
+        {/* create group */}
         <div className="mt-7">
           <div className="mb-2 flex items-center justify-between px-3">
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -75,6 +76,7 @@ export function Sidebar() {
             </Link>
           </div>
           <nav className="space-y-1.5">
+            {/* render all groups that user has membership in */}
             {groups?.map((group) => (
               <Link key={group.id} href={`/groups/${group.id}/calendar`}>
                 <span

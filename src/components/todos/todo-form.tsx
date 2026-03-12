@@ -44,8 +44,8 @@ export function TodoForm({ isOpen, onClose, groupId, defaultValues, onSuccess }:
 
     try {
       const url = isEdit
-        ? `/api/groups/${groupId}/todos/${defaultValues!.id}`
-        : `/api/groups/${groupId}/todos`;
+        ? `/api/groups/${groupId}/todos/${defaultValues!.id}` //edit a todo
+        : `/api/groups/${groupId}/todos`; // add a todo
 
       const res = await fetch(url, {
         method: isEdit ? "PATCH" : "POST",

@@ -57,7 +57,7 @@ export default function InvitePage() {
         toast.success(`Joined ${data.groupName}!`);
       }
 
-      router.push(`/groups/${data.groupId}/calendar`);
+      router.push(`/groups/${data.groupId}/calendar`);// go to group calendar
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to join");
     } finally {
@@ -89,6 +89,7 @@ export default function InvitePage() {
   }
 
   return (
+    /* group info */
     <div className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
@@ -104,16 +105,18 @@ export default function InvitePage() {
 
           {status === "loading" ? (
             <p className="text-sm text-muted-foreground">Checking session...</p>
-          ) : session?.user ? (
+          ) : session?.user ? ( // if logged in
             <div className="space-y-2">
               <p className="text-sm text-muted-foreground">
                 Signed in as @{session.user.username}
               </p>
+              {/* join it */}
               <Button className="w-full" onClick={handleJoin} disabled={joining}>
                 {joining ? "Joining..." : "Join Group"}
               </Button>
             </div>
           ) : (
+            //sign in if not logged in
             <Button
               className="w-full"
               onClick={() =>

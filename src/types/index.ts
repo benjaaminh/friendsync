@@ -5,6 +5,7 @@ import { GroupMemberRole, TodoStatus } from "@/generated/prisma/enums";
 
 export type { GroupMemberRole, TodoStatus };
 
+
 export interface GroupWithMembers {
   id: string;
   name: string;
@@ -24,12 +25,6 @@ export interface GroupWithMembers {
     members: number;
     todos: number;
   };
-}
-
-export interface FreeSlot {
-  start: string;
-  end: string;
-  durationMinutes: number;
 }
 
 export interface TodoWithCreator {

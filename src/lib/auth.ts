@@ -1,5 +1,5 @@
 /**
- * Shared library utilities for auth used across server and client code.
+ * auth with next-auth
  */
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
@@ -49,7 +49,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         if (!user || !user.passwordHash) return null;
 
-        const isValid = await bcrypt.compare(password, user.passwordHash);
+        const isValid = await bcrypt.compare(password, user.passwordHash); //bcrypt algo
         if (!isValid) return null;
 
         return {

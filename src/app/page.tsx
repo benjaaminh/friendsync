@@ -26,7 +26,6 @@ export default async function Home() {
         </div>
         <p className="text-muted-foreground">
           Plan activities with friends in one shared calendar and todo flow.
-          No more endless &quot;when are you free?&quot; messages.
         </p>
         <div className="flex flex-col gap-3">
           <Link href="/signin">
