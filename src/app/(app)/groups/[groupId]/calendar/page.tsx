@@ -4,7 +4,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { startOfWeek, addDays, format } from "date-fns";
+import { startOfWeek, addDays, format, parseISO } from "date-fns";
 import { enGB } from "date-fns/locale";
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
@@ -38,6 +38,15 @@ export default function CalendarPage() {
   const [title, setTitle] = useState("");
   const [duration, setDuration] = useState("60");
   const [saving, setSaving] = useState(false);
+  // Tracks an in-flight completion request to lock dialog actions and avoid duplicate submits.
+  const [completingEventId, setCompletingEventId] = useState<string | null>(null);
+  // Stores the event selected from the calendar to populate the completion confirmation dialog.
+  const [eventToComplete, setEventToComplete] = useState<{
+    id: string;
+    title: string;
+    start: string;
+    end: string;
+  } | null>(null);
 
   const weekStart = useMemo(() => {
     const base = startOfWeek(new Date(), { weekStartsOn: 1 });
@@ -52,7 +61,8 @@ export default function CalendarPage() {
   const to = weekEnd.toISOString();
 
   const { events, isLoading, mutate } = useGroupEvents(groupId, from, to);
-  const { todos: pendingTodos } = useTodos(groupId, "PENDING");
+  // mutate because they are modified
+  const { todos: pendingTodos, mutate: mutatePendingTodos } = useTodos(groupId, "PENDING");
 
   function handleEmptySlotClick(start: Date) {
     setClickedTime(start);
@@ -131,6 +141,49 @@ export default function CalendarPage() {
     }
   }
 
+  async function handleEventComplete(eventId: string) {
+    // Guard against rapid repeated confirms while the PATCH is still running.
+    if (completingEventId) return;
+    setCompletingEventId(eventId);
+
+    try {
+      const res = await fetch(`/api/groups/${groupId}/todos/${eventId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "COMPLETED" }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to mark event as complete");
+      }
+
+      toast.success("Event completed");
+      await Promise.all([mutate(), mutatePendingTodos()]);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setCompletingEventId(null);
+    }
+  }
+
+  function handleEventClick(event: {
+    id: string;
+    title: string;
+    start: string;
+    end: string;
+  }) {
+    // Clicking a calendar block opens confirmation; completion is only done after explicit confirm.
+    setEventToComplete(event);
+  }
+
+  async function handleConfirmComplete() {
+    if (!eventToComplete) return;
+    await handleEventComplete(eventToComplete.id);
+    // Close after request settles (success or failure) so state stays consistent with the loading lock.
+    setEventToComplete(null);
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
@@ -174,6 +227,7 @@ export default function CalendarPage() {
           events={events}
           weekStart={weekStart}
           onEmptySlotClick={handleEmptySlotClick}
+          onEventClick={handleEventClick}
         />
       )}
 
@@ -183,6 +237,7 @@ export default function CalendarPage() {
           Planned events
         </span>
         <span className="text-muted-foreground/60">Click on a timeslot to add an event</span>
+        <span className="text-muted-foreground/60">Click an event to complete it</span>
       </div>
 
       {/* Create event dialog. Open based on flag */}
@@ -254,6 +309,40 @@ export default function CalendarPage() {
             <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>
             <Button onClick={handleCreate} disabled={saving || !activeTitle.trim()}>
               {saving ? "Adding..." : "Add Event"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={Boolean(eventToComplete)}
+        onOpenChange={(open) => {
+          // Keep dialog mounted while submitting to prevent accidental close mid-request.
+          if (!open && !completingEventId) {
+            setEventToComplete(null);
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Complete Event?</DialogTitle>
+            {eventToComplete && (
+              <p className="text-sm text-muted-foreground">
+                {eventToComplete.title} on {format(parseISO(eventToComplete.start), "EEEE, d MMMM 'at' HH:mm", { locale: enGB })}
+              </p>
+            )}
+          </DialogHeader>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setEventToComplete(null)}
+              disabled={Boolean(completingEventId)}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleConfirmComplete} disabled={Boolean(completingEventId)}>
+              {completingEventId ? "Completing..." : "Complete event"}
             </Button>
           </DialogFooter>
         </DialogContent>

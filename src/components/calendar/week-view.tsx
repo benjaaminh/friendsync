@@ -27,6 +27,7 @@ interface WeekViewProps {
   events?: ScheduledEventData[];
   weekStart: Date;
   onEmptySlotClick?: (start: Date) => void;
+  onEventClick?: (event: ScheduledEventData) => void;
 }
 
  // calculates how big of a window to render for an event, with top and height of the "card"
@@ -63,6 +64,7 @@ export function WeekView({
   events = [],
   weekStart,
   onEmptySlotClick,
+  onEventClick,
 }: WeekViewProps) {
   const days = useMemo(
     () => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)),
@@ -171,12 +173,13 @@ export function WeekView({
                 />
               ))}
 
-              {/* Scheduled group events */}
+              {/* Scheduled group events as blocks in the calendar */}
               {events.map((event) => {
                 const eventStart = parseISO(event.start);
                 const eventEnd = parseISO(event.end);
                 if (!isSameDay(eventStart, day) && !isSameDay(eventEnd, day))
                   return null;
+                // position it in the calendar
                 const pos = getSlotPosition(eventStart, eventEnd, day);
                 if (!pos) return null;
 
@@ -184,9 +187,16 @@ export function WeekView({
                   <div
                     key={`event-${event.id}`}
                     data-event
-                    className="absolute left-0.5 right-0.5 rounded-sm bg-blue-500 dark:bg-blue-600 border border-blue-600 dark:border-blue-500 z-[5] overflow-hidden shadow-sm"
+                    className={cn(
+                      "absolute left-0.5 right-0.5 rounded-sm bg-blue-500 dark:bg-blue-600 border border-blue-600 dark:border-blue-500 z-[5] overflow-hidden shadow-sm",
+                      onEventClick && "cursor-pointer"
+                    )}
                     style={{ top: pos.top, height: pos.height }}
                     title={`${event.title}\n${format(eventStart, "HH:mm")} - ${format(eventEnd, "HH:mm")}${event.creatorName ? `\nAdded by ${event.creatorName}` : ""}`}
+                    onClick={(e) => { /* if pressed */
+                      e.stopPropagation();
+                      onEventClick?.(event);
+                    }}
                   >
                     <div className="px-1.5 py-0.5 h-full flex flex-col">
                       <span className="text-[11px] font-medium text-white truncate">
@@ -202,7 +212,7 @@ export function WeekView({
                 );
               })}
 
-              {/* Current time indicator */}
+              {/* Current time indicator (the red line) */}
               {isSameDay(day, now) && currentTimePos !== null && (
                 <div
                   className="absolute left-0 right-0 z-10"
