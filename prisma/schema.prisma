@@ -23,6 +23,7 @@ model User {
   sessions     Session[]
   groupMembers GroupMember[]
   todosCreated Todo[]       @relation("TodoCreator")
+  photos       EventPhoto[] @relation("PhotoUploader")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -113,6 +114,7 @@ model Todo {
 
   group   Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
   creator User  @relation("TodoCreator", fields: [createdById], references: [id])
+  photos  EventPhoto[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -139,4 +141,23 @@ model InviteLink {
   group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
+}
+
+model EventPhoto {
+  id          String  @id @default(cuid())
+  todoId      String
+  uploadedById String
+  cloudinaryId String
+  url         String
+  thumbnailUrl String
+  width       Int?
+  height      Int?
+  caption     String?
+
+  todo       Todo @relation(fields: [todoId], references: [id], onDelete: Cascade)
+  uploadedBy User @relation("PhotoUploader", fields: [uploadedById], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([todoId])
 }

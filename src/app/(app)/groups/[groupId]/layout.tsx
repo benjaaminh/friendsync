@@ -54,6 +54,11 @@ export default async function GroupLayout({
               <span>Todos</span>
             </TabsTrigger>
           </Link>
+          <Link href={`/groups/${groupId}/photos`}>
+            <TabsTrigger value="photos" asChild className="px-3 py-1.5">
+              <span>Photos</span>
+            </TabsTrigger>
+          </Link>
           <Link href={`/groups/${groupId}/settings`}>
             <TabsTrigger value="settings" asChild className="px-3 py-1.5">
               <span>Settings</span>

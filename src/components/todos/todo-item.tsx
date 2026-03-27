@@ -6,6 +6,7 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { enGB } from "date-fns/locale";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -37,8 +38,10 @@ interface TodoItemProps {
 }
 
 export function TodoItem({ todo, groupId, currentUserId, onUpdate }: TodoItemProps) {
+  const router = useRouter();
   const [showDelete, setShowDelete] = useState(false);
   const [showSchedule, setShowSchedule] = useState(false);
+  const [showPhotoPrompt, setShowPhotoPrompt] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   const status = statusConfig[todo.status];
@@ -71,9 +74,15 @@ export function TodoItem({ todo, groupId, currentUserId, onUpdate }: TodoItemPro
       if (!res.ok) throw new Error("Failed to update");
       toast.success("Marked as complete");
       onUpdate();
+      setShowPhotoPrompt(true);
     } catch {
       toast.error("Failed to update todo");
     }
+  }
+
+  function handleGoToPhotos() {
+    setShowPhotoPrompt(false);
+    router.push(`/groups/${groupId}/photos?todoId=${todo.id}`);
   }
 
   return (
@@ -144,6 +153,23 @@ export function TodoItem({ todo, groupId, currentUserId, onUpdate }: TodoItemPro
             <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
               {deleting ? "Deleting..." : "Delete"}
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showPhotoPrompt} onOpenChange={setShowPhotoPrompt}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Event finished</DialogTitle>
+            <DialogDescription>
+              Do you want to add photos to this event now?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPhotoPrompt(false)}>
+              Maybe later
+            </Button>
+            <Button onClick={handleGoToPhotos}>Add photos</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
