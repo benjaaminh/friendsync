@@ -19,7 +19,7 @@ export default async function AppLayout({
 
   return (
     <div className="relative flex h-screen overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_14%,rgba(255,255,255,0.72),transparent_42%),radial-gradient(circle_at_86%_84%,rgba(82,220,205,0.26),transparent_34%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_14%,rgba(255,255,255,0.72),transparent_42%),radial-gradient(circle_at_86%_84%,rgba(82,220,205,0.26),transparent_34%)] dark:bg-[radial-gradient(circle_at_20%_12%,rgba(120,205,245,0.08),transparent_36%),radial-gradient(circle_at_86%_82%,rgba(64,152,216,0.08),transparent_34%)]" />
       <Sidebar />
       <div className="relative flex flex-1 flex-col overflow-hidden">
         <MobileHeader />

@@ -234,8 +234,11 @@ export default function GroupSettingsPage() {
           </CardHeader>
           <CardContent className="space-y-2">
             {invites.map((invite) => (
-              <div key={invite.id} className="flex items-center gap-2 rounded-2xl border border-white/50 bg-white/50 px-3 py-2 text-sm">
-                <code className="flex-1 truncate rounded-lg bg-white/80 px-2 py-1 text-xs">
+              <div
+                key={invite.id}
+                className="flex items-center gap-2 rounded-2xl border border-white/50 bg-white/50 px-3 py-2 text-sm dark:border-white/15 dark:bg-slate-900/55"
+              >
+                <code className="flex-1 truncate rounded-lg bg-white/80 px-2 py-1 text-xs dark:bg-slate-800/80 dark:text-slate-100">
                   {`${typeof window !== "undefined" ? window.location.origin : ""}/invite/${invite.code}`}
                 </code>
                 <span className="text-xs text-muted-foreground">
