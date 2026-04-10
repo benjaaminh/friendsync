@@ -22,7 +22,7 @@ export async function GET() {
 
 /**
  * Updates mutable profile settings for the authenticated user.
- * Currently supports `timezone`.
+ * Currently supports timezone and profile picture
  * @param request Incoming request containing profile update fields.
  */
 export async function PATCH(request: Request) {
@@ -30,7 +30,7 @@ export async function PATCH(request: Request) {
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await request.json();
-  const { timezone } = body;
+  const { timezone, image } = body;
 
   if (timezone && typeof timezone === "string") {
     // Validate timezone
@@ -41,9 +41,23 @@ export async function PATCH(request: Request) {
     }
   }
 
+  if (image !== undefined && image !== null && typeof image !== "string") {
+    return NextResponse.json({ error: "Invalid image value" }, { status: 400 });
+  }
+
+  if (typeof image === "string" && image.length > 0) {
+    const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+    if (!cloudName || !image.startsWith(`https://res.cloudinary.com/${cloudName}/`)) {
+      return NextResponse.json({ error: "Image must be a Cloudinary URL" }, { status: 400 });
+    }
+  }
+
   const user = await prisma.user.update({
     where: { id: session.user.id },
-    data: { ...(timezone && { timezone }) },
+    data: {
+      ...(timezone && { timezone }),
+      ...(image !== undefined && { image: image || null }),
+    },
     select: { id: true, username: true, image: true, timezone: true },
   });
 

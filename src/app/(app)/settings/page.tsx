@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { ProfilePictureField } from "@/components/settings/profile-picture-field";
 import {
   Select,
   SelectContent,
@@ -52,6 +53,7 @@ export default function UserSettingsPage() {
   const { data: session } = useSession();
   const [timezone, setTimezone] = useState("UTC");
   const [loading, setLoading] = useState(false);
+  const [userImage, setUserImage] = useState<string | null>(null);
   const [timezones] = useState(getTimezones);
 
   useEffect(() => {
@@ -59,6 +61,7 @@ export default function UserSettingsPage() {
       .then((r) => r.json())
       .then((data) => {
         if (data.timezone) setTimezone(data.timezone);
+        setUserImage(data.image ?? null);
       });
   }, []);
 
@@ -94,11 +97,15 @@ export default function UserSettingsPage() {
         <CardHeader>
           <CardTitle className="text-base">Profile</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2">
+        <CardContent className="space-y-4">
           <div className="text-sm">
             <span className="text-muted-foreground">Username:</span>{" "}
             @{session?.user?.username}
           </div>
+          <ProfilePictureField
+            username={session?.user?.username}
+            initialImage={userImage ?? session?.user?.image ?? null}
+          />
         </CardContent>
       </Card>
 
