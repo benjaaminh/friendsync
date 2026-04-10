@@ -69,7 +69,7 @@ export default function RegisterPage() {
     <Card className="w-full max-w-sm border-0 bg-transparent py-5 shadow-none">
       <CardHeader className="text-center">
         <CardTitle className="text-2xl">
-          <span className="text-primary">Friend</span>Cal
+          <span className="text-primary">Friend</span>Sync
         </CardTitle>
         <CardDescription>Create an account to get started</CardDescription>
       </CardHeader>

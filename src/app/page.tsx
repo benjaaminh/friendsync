@@ -18,7 +18,7 @@ export default async function Home() {
       <div className="mx-auto max-w-md text-center space-y-8 px-4">
         <div className="space-y-2">
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-            <span className="text-primary">Friend</span>Cal
+            <span className="text-primary">Friend</span>Sync
           </h1>
           <p className="text-xl text-muted-foreground">
             Find time together
