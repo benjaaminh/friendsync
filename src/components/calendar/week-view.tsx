@@ -90,10 +90,10 @@ export function WeekView({
 
   return (
     <div className="overflow-x-auto border rounded-lg bg-card">
-      <div className="min-w-[700px]">
+      <div className="min-w-[840px]">
         {/* Header */}
-        <div className="grid grid-cols-[60px_repeat(7,1fr)] border-b sticky top-0 bg-card z-10">
-          <div className="p-2 text-xs text-muted-foreground" />
+        <div className="grid grid-cols-[60px_repeat(7,minmax(110px,1fr))] border-b sticky top-0 bg-card z-20">
+          <div className="sticky left-0 z-30 bg-card p-2 text-xs text-muted-foreground border-r" />
           {days.map((day, i) => (
             <div
               key={i}
@@ -119,9 +119,9 @@ export function WeekView({
         </div>
 
         {/* Grid body */}
-        <div className="grid grid-cols-[60px_repeat(7,1fr)]">
+        <div className="grid grid-cols-[60px_repeat(7,minmax(110px,1fr))]">
           {/* Time labels */}
-          <div className="relative" style={{ height: totalHeight }}>
+          <div className="relative sticky left-0 z-20 bg-card border-r" style={{ height: totalHeight }}>
             {hours.map((hour) => (
               <div
                 key={hour}
