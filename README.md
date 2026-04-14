@@ -4,6 +4,7 @@ A group planning webapp for small friend groups. Manage a shared calendar and to
 
 **Features:**
 - Username/password authentication (no third-party accounts needed)
+- Email-based password reset links (SMTP)
 - Week view showing planned group events
 - Shared todo list with scheduling in your group calendar
 - Invite friends via shareable link

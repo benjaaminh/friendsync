@@ -96,6 +96,14 @@ function SignInContent() {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
+            <div className="text-right">
+              <Link
+                href="/forgot-password"
+                className="text-xs font-medium text-sky-700 underline underline-offset-4"
+              >
+                Forgot password?
+              </Link>
+            </div>
           </div>
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Signing in..." : "Sign In"}

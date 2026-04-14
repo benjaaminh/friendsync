@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -34,7 +35,7 @@ export default function RegisterPage() {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ email, username, password }),
       });
 
       const data = await res.json();
@@ -80,6 +81,18 @@ export default function RegisterPage() {
               {error}
             </div>
           )}
+          <div className="space-y-2">
+            <Label htmlFor="email" className="text-sky-900/85">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              autoComplete="email"
+            />
+          </div>
           <div className="space-y-2">
             <Label htmlFor="username" className="text-sky-900/85">Username</Label>
             <Input

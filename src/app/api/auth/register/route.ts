@@ -6,28 +6,38 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 
 /**
- * Registers a new user account after validating username and password constraints.
- * @param req Incoming request containing `username` and `password`.
+ * Registers a new user account after validating email, username, and password constraints.
+ * @param req Incoming request containing `email`, `username`, and `password`.
  */
 export async function POST(req: Request) {
   try {
-    const { username, password } = await req.json();
+    const { email, username, password } = await req.json();
 
-    if (!username || !password) {
+    if (!email || !username || !password) {
       return NextResponse.json(
-        { error: "Username and password are required" },
+        { error: "Email, username, and password are required" },
         { status: 400 }
       );
     }
 
-    if (username.length < 3 || username.length > 20) {
+    const normalizedEmail = String(email).trim().toLowerCase();
+    const normalizedUsername = String(username).trim();
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+      return NextResponse.json(
+        { error: "Please enter a valid email address" },
+        { status: 400 }
+      );
+    }
+
+    if (normalizedUsername.length < 3 || normalizedUsername.length > 20) {
       return NextResponse.json(
         { error: "Username must be between 3 and 20 characters" },
         { status: 400 }
       );
     }
 
-    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+    if (!/^[a-zA-Z0-9_]+$/.test(normalizedUsername)) {
       return NextResponse.json(
         { error: "Username can only contain letters, numbers, and underscores" },
         { status: 400 }
@@ -41,10 +51,21 @@ export async function POST(req: Request) {
       );
     }
 
-    const existing = await prisma.user.findUnique({ where: { username } });
-    if (existing) {
+    const [existingByUsername, existingByEmail] = await Promise.all([
+      prisma.user.findUnique({ where: { username: normalizedUsername } }),
+      prisma.user.findFirst({ where: { email: normalizedEmail } }),
+    ]);
+
+    if (existingByUsername) {
       return NextResponse.json(
         { error: "This username is already taken" },
+        { status: 409 }
+      );
+    }
+
+    if (existingByEmail) {
+      return NextResponse.json(
+        { error: "This email is already registered" },
         { status: 409 }
       );
     }
@@ -53,7 +74,8 @@ export async function POST(req: Request) {
 
     const user = await prisma.user.create({
       data: {
-        username,
+        email: normalizedEmail,
+        username: normalizedUsername,
         passwordHash,
       },
     });
