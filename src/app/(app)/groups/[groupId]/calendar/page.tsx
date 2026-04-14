@@ -16,6 +16,7 @@ import {
   TODO_DURATION_OPTIONS,
 } from "@/components/todos/todo-form-fields";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import {
@@ -33,6 +34,9 @@ export default function CalendarPage() {
   const [weekOffset, setWeekOffset] = useState(0);
   const [createOpen, setCreateOpen] = useState(false);
   const [clickedTime, setClickedTime] = useState<Date | null>(null);
+  // Keep local date/time strings for native inputs so users can adjust the clicked slot before saving.
+  const [startDate, setStartDate] = useState("");
+  const [startTime, setStartTime] = useState("");
   // null = new event, string = existing todo id
   const [selectedTodoId, setSelectedTodoId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
@@ -66,6 +70,9 @@ export default function CalendarPage() {
 
   function handleEmptySlotClick(start: Date) {
     setClickedTime(start);
+    // Prefill from the exact slot that was clicked in week view.
+    setStartDate(format(start, "yyyy-MM-dd"));
+    setStartTime(format(start, "HH:mm"));
     setSelectedTodoId(null);
     setTitle("");
     setDuration("60");
@@ -88,11 +95,23 @@ export default function CalendarPage() {
     []
   );
 
+  // preview-only Date built from the current input values (date + time)
+  // this is not saved directly; it is used to render the header text in the modal
+  const startPreview = new Date(`${startDate}T${startTime}`);
+  // guard before formatting: Date input can be temporarily invalid while the user is typing.
+  const hasValidStartPreview = !isNaN(startPreview.getTime());
+
   async function handleCreate() {
-    if (!clickedTime || !activeTitle.trim()) return;
+    if (!activeTitle.trim()) return;
     setSaving(true);
 
     try {
+      // parse user-edited local date/time into a concrete timestamp used for scheduling.
+      const scheduledStart = new Date(`${startDate}T${startTime}`);
+      if (isNaN(scheduledStart.getTime())) {
+        throw new Error("Invalid date or time");
+      }
+
       let todoId: string;
       const durationMinutes = parseInt(activeDuration, 10);
 
@@ -114,14 +133,14 @@ export default function CalendarPage() {
         todoId = todo.id;
       }
 
-      const end = new Date(clickedTime.getTime() + durationMinutes * 60 * 1000); //end time of event
+      const end = new Date(scheduledStart.getTime() + durationMinutes * 60 * 1000); //end time of event
 
-      //schedule the created todo
+      // backend accepts ISO timestamps, so convert both bounds after local-time calculation.
       const scheduleRes = await fetch(`/api/groups/${groupId}/todos/${todoId}/schedule`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          start: clickedTime.toISOString(),
+          start: scheduledStart.toISOString(),
           end: end.toISOString(),
         }),
       });
@@ -247,7 +266,9 @@ export default function CalendarPage() {
             <DialogTitle>Add Event</DialogTitle>
             {clickedTime && (
               <p className="text-sm text-muted-foreground">
-                {format(clickedTime, "EEEE, do 'of' MMMM 'at' HH:mm", { locale: enGB })}
+                {hasValidStartPreview /* render the date and time */
+                  ? format(startPreview, "EEEE, do 'of' MMMM 'at' HH:mm", { locale: enGB })
+                  : "Choose a valid date and time"}
               </p>
             )}
           </DialogHeader>
@@ -285,7 +306,29 @@ export default function CalendarPage() {
               </div>
             )}
 
-            {/* New event fields — disabled when a todo is selected */}
+            {/* new event fields — disabled when a todo is selected */}
+            {/* date and time inputs */}
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="grid gap-2">
+                <Label htmlFor="event-start-date">Date</Label>
+                <Input
+                  id="event-start-date"
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="event-start-time">Start time</Label>
+                <Input
+                  id="event-start-time"
+                  type="time"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                />
+              </div>
+            </div>
+
             <div className={cn("grid gap-4", selectedTodoId && "opacity-40 pointer-events-none")}>
               <TodoFormFields
                 title={title}
@@ -307,7 +350,7 @@ export default function CalendarPage() {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>
-            <Button onClick={handleCreate} disabled={saving || !activeTitle.trim()}>
+            <Button onClick={handleCreate} disabled={saving || !activeTitle.trim() || !startDate || !startTime}>
               {saving ? "Adding..." : "Add Event"}
             </Button>
           </DialogFooter>
