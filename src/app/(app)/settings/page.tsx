@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { ProfilePictureField } from "@/components/settings/profile-picture-field";
+import { getAvailableTimezones } from "@/lib/timezones";
 import {
   Select,
   SelectContent,
@@ -18,43 +19,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const COMMON_TIMEZONES = [
-  "Europe/London",
-  "Europe/Paris",
-  "Europe/Berlin",
-  "Europe/Amsterdam",
-  "Europe/Madrid",
-  "Europe/Rome",
-  "Europe/Istanbul",
-  "America/New_York",
-  "America/Chicago",
-  "America/Denver",
-  "America/Los_Angeles",
-  "America/Sao_Paulo",
-  "Asia/Tokyo",
-  "Asia/Shanghai",
-  "Asia/Kolkata",
-  "Asia/Dubai",
-  "Australia/Sydney",
-  "Pacific/Auckland",
-];
-
-// Try to get all available timezones
-function getTimezones(): string[] {
-  try {
-    const all = Intl.supportedValuesOf("timeZone");
-    return all;
-  } catch {
-    return COMMON_TIMEZONES;
-  }
-}
-
 export default function UserSettingsPage() {
   const { data: session } = useSession();
   const [timezone, setTimezone] = useState("UTC");
   const [loading, setLoading] = useState(false);
   const [userImage, setUserImage] = useState<string | null>(null);
-  const [timezones] = useState(getTimezones);
+  const [timezones] = useState(getAvailableTimezones);
 
   useEffect(() => {
     fetch("/api/user")

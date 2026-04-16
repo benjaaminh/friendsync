@@ -44,13 +44,14 @@ export async function PATCH(
   if (!access.ok) return access.response;
 
   const body = await request.json();
-  const { name, description } = body;
+  const { name, description, timezone } = body;
 
   const group = await prisma.group.update({
     where: { id: groupId },
     data: {
       ...(name && { name: name.trim() }),
       ...(description !== undefined && { description: description?.trim() || null }),
+      ...(timezone && { timezone: timezone.trim() }),
     },
   });
 

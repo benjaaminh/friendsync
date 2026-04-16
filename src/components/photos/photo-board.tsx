@@ -1,5 +1,5 @@
 /**
- * Polaroid-style photo board that displays event photos in a grid.
+ * Photo board that displays event photos in a grid.
  */
 "use client";
 
@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/dialog";
 import type { EventPhoto } from "@/hooks/use-event-photos";
 
-// Fixed set of slight rotations to give a scattered polaroid feel
+// Fixed set of slight rotations
 const ROTATIONS = [
   "-rotate-2",
   "rotate-1",

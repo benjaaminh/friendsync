@@ -1,6 +1,6 @@
 /**
  * Next.js page component for the group photo board.
- * Displays a polaroid-style wall of photos from completed events.
+ * Displays a wall of photos from completed events.
  */
 "use client";
 

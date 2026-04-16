@@ -74,6 +74,12 @@ model Group {
   name        String
   description String?
   createdById String
+  timezone    String  @default("UTC")
+  telegramChatId String? @unique
+  telegramChatTitle String?
+  telegramLinkCode String? @unique
+  telegramLinkCodeExpiresAt DateTime?
+  telegramLinkedAt DateTime?
 
   members     GroupMember[]
   todos       Todo[]

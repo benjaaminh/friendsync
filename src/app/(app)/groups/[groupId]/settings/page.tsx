@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -24,6 +25,7 @@ import {
 } from "@/components/ui/dialog";
 import { UserAvatar } from "@/components/auth/user-avatar";
 import { fetcher } from "@/lib/fetcher";
+import { getAvailableTimezones } from "@/lib/timezones";
 
 interface Member {
   id: string;
@@ -41,6 +43,11 @@ interface GroupData {
   name: string;
   description: string | null;
   currentUserRole: string;
+  timezone: string;
+  telegramChatId: string | null;
+  telegramChatTitle: string | null;
+  telegramLinkCode: string | null;
+  telegramLinkCodeExpiresAt: string | null;
   members: Member[];
 }
 
@@ -71,15 +78,26 @@ export default function GroupSettingsPage() {
   );
   //group name
   const [name, setName] = useState("");
+  const [timezone, setTimezone] = useState("UTC");
+  const [telegramLinkCode, setTelegramLinkCode] = useState<string | null>(null);
   const [showDeleteGroup, setShowDeleteGroup] = useState(false);
   const [showLeave, setShowLeave] = useState(false);
   const [showRemoveMember, setShowRemoveMember] = useState<Member | null>(null);
   const [loading, setLoading] = useState(false);
+  const [telegramLoading, setTelegramLoading] = useState(false);
+
+  const timezones = getAvailableTimezones();
 
   const isAdmin = group?.currentUserRole === "ADMIN";
+  const telegramCodeExpiresAt = group?.telegramLinkCodeExpiresAt
+    ? new Date(group.telegramLinkCodeExpiresAt)
+    : null;
+  const currentTelegramLinkCode = telegramLinkCode ?? group?.telegramLinkCode ?? null;
 
   useEffect(() => {
     if (group) setName(group.name);
+    if (group?.timezone) setTimezone(group.timezone);
+    setTelegramLinkCode(group?.telegramLinkCode ?? null);
   }, [group]);
 
   // update name
@@ -89,7 +107,7 @@ export default function GroupSettingsPage() {
       const res = await fetch(`/api/groups/${groupId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({ name, timezone }),
       });
       if (!res.ok) throw new Error();
       toast.success("Group updated");
@@ -113,6 +131,41 @@ export default function GroupSettingsPage() {
       mutateInvites();
     } catch {
       toast.error("Failed to create invite");
+    }
+  }
+
+  async function handleGenerateTelegramLinkCode() {
+    setTelegramLoading(true);
+    try {
+      const res = await fetch(`/api/groups/${groupId}/telegram`, {
+        method: "POST",
+      });
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      setTelegramLinkCode(data.linkCode);
+      toast.success("Telegram link code generated");
+      mutateGroup();
+    } catch {
+      toast.error("Failed to generate Telegram code");
+    } finally {
+      setTelegramLoading(false);
+    }
+  }
+
+  async function handleUnlinkTelegram() {
+    setTelegramLoading(true);
+    try {
+      const res = await fetch(`/api/groups/${groupId}/telegram`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error();
+      setTelegramLinkCode(null);
+      toast.success("Telegram chat unlinked");
+      mutateGroup();
+    } catch {
+      toast.error("Failed to unlink Telegram chat");
+    } finally {
+      setTelegramLoading(false);
     }
   }
 
@@ -179,13 +232,85 @@ export default function GroupSettingsPage() {
             <CardTitle className="text-base">Group Settings</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleUpdateGroup} className="flex gap-2">
-              <div className="flex-1">
-                <Label htmlFor="groupName" className="sr-only">Group Name</Label>
+            <form onSubmit={handleUpdateGroup} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="groupName">Group Name</Label>
                 <Input id="groupName" value={name} onChange={(e) => setName(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>Group Timezone</Label>
+                <Select value={timezone} onValueChange={setTimezone}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select timezone" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {timezones.map((tz) => (
+                      <SelectItem key={tz} value={tz}>
+                        {tz.replace(/_/g, " ")}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <Button type="submit" size="sm">Save</Button>
             </form>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* telegram bot settings */}
+      {isAdmin && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Telegram Bot</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Generate a one-time code here, then send <span className="font-medium">/link CODE</span> in the Telegram group chat.
+            </p>
+            <div className="rounded-2xl border border-white/55 bg-white/55 p-4 dark:border-white/10 dark:bg-white/5">
+              <div className="flex flex-wrap items-center gap-2 text-sm">
+                <span className="text-muted-foreground">Status:</span>
+                {group?.telegramChatId ? (
+                  <Badge>Linked</Badge>
+                ) : (
+                  <Badge variant="secondary">Not linked</Badge>
+                )}
+                {group?.telegramChatTitle && (
+                  <span className="text-muted-foreground">{group.telegramChatTitle}</span>
+                )}
+              </div>
+              <div className="mt-3 space-y-2 text-sm">
+                <div>
+                  <span className="text-muted-foreground">Link code:</span>{" "}
+                  <span className="font-mono text-foreground">
+                    {currentTelegramLinkCode ?? "Generate a code to start linking"}
+                  </span>
+                </div>
+                {telegramCodeExpiresAt && (
+                  <div className="text-muted-foreground">
+                    Expires: {telegramCodeExpiresAt.toLocaleString(undefined, {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button type="button" onClick={handleGenerateTelegramLinkCode} disabled={telegramLoading}>
+                {telegramLoading ? "Generating..." : "Generate link code"}
+              </Button>
+              <Button type="button" variant="outline" onClick={handleUnlinkTelegram} disabled={telegramLoading || !group?.telegramChatId}>
+                Unlink Telegram
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Add your bot to the Telegram group first. If you regenerate the code, the previous one stops working.
+            </p>
           </CardContent>
         </Card>
       )}
@@ -267,16 +392,16 @@ export default function GroupSettingsPage() {
       {/* leave and delete group */}
       <div className="rounded-2xl border border-red-300/35 bg-red-100/35 p-4">
         <div className="flex gap-2">
-        {!isAdmin && (
-          <Button variant="outline" className="text-destructive" onClick={() => setShowLeave(true)}>
-            Leave Group
-          </Button>
-        )}
-        {isAdmin && (
-          <Button variant="destructive" onClick={() => setShowDeleteGroup(true)}>
-            Delete Group
-          </Button>
-        )}
+          {!isAdmin && (
+            <Button variant="outline" className="text-destructive" onClick={() => setShowLeave(true)}>
+              Leave Group
+            </Button>
+          )}
+          {isAdmin && (
+            <Button variant="destructive" onClick={() => setShowDeleteGroup(true)}>
+              Delete Group
+            </Button>
+          )}
         </div>
       </div>
 
