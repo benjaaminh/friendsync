@@ -67,6 +67,23 @@ async function reply(chatId: number, text: string): Promise<void> {
   await sendTelegramMessage(chatId, text, { parseMode: "HTML" });
 }
 
+// Ensure all Telegram-created todos use a single dedicated app user for attribution, so that the admin isnt the creator of each one
+async function getTelegramBotActorUserId(defaultTimeZone: string): Promise<string> {
+  const username = process.env.TELEGRAM_BOT_ACTOR_USERNAME ?? "friendsync_telegram_bot_actor";
+
+  const botActor = await prisma.user.upsert({
+    where: { username },
+    update: {},
+    create: {
+      username,
+      timezone: defaultTimeZone,
+    },
+    select: { id: true },
+  });
+
+  return botActor.id;
+}
+
 // Main webhook handler for Telegram bot commands. 
 // Sends responses based on commands
 export async function POST(request: NextRequest) {
@@ -262,10 +279,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: true });
     }
 
+    const botActorUserId = await getTelegramBotActorUserId(timeZone);
+
     const todo = await prisma.todo.create({
       data: {
         groupId: linkedGroup.id,
-        createdById: linkedGroup.createdById,
+        createdById: botActorUserId,
         title: title.trim(),
         description: description?.trim() || null,
         duration: Number.isFinite(duration) && duration > 0 ? duration : 60,
